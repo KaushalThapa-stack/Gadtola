@@ -70,11 +70,17 @@ def product_detail(request, category_slug, product_slug):
     # GET reviews
     reviews = ReviewRating.objects.filter(product_id = single_product.id, status = True)
     
+    # Get 5 random products (excluding current product)
+    import random
+    all_products = list(Product.objects.filter(is_available=True).exclude(id=single_product.id))
+    random_products = random.sample(all_products, min(len(all_products), 5))
+    
     context = {
         'single_product' : single_product,
         'in_cart' : in_cart,
         'orderproduct' : orderproduct,
         'reviews' : reviews,
+        'random_products': random_products,
     }
     return render (request , 'store/product_detail.html',context)
 
@@ -84,7 +90,11 @@ def search(request):
     if 'keyword' in request.GET:
         keyword = request.GET['keyword']
         if keyword:
-            products = Product.objects.order_by('-created_date').filter(Q(discription__icontains = keyword) | Q(product_name__icontains = keyword))
+            products = Product.objects.order_by('-created_date').filter(
+                Q(discription__icontains=keyword) |
+                Q(product_name__icontains=keyword) |
+                Q(category__category_name__icontains=keyword)
+            )
             product_count = products.count()
     
     # Create product_ratings dictionary

@@ -17,17 +17,26 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf.urls.static import static
 from django.conf import settings
+from django.conf.urls import handler404
+from django.shortcuts import render
 
 from sathyshop import views
 
 urlpatterns = [
-    path('admin/', include('admin_honeypot.urls', namespace='admin_honeypot')),
-    path('teclogin/', admin.site.urls),
+    # path('admin/', include('admin_honeypot.urls', namespace='admin_honeypot')),
+    path('admin/', admin.site.urls),
     path('',views.home,name='home'),
     path('store/',include('store.urls')),
     path('cart/',include('carts.urls')),
     path('accounts/',include('accounts.urls')),
+    path('contact/', views.contact, name='contact'),
+    path('about/', views.about, name='about'),
+    path('searchbar/', views.search_page, name='search_page'),
 
     #order
     path('orders/', include('orders.urls')),
-]+  static(settings.MEDIA_URL,document_root = settings.MEDIA_ROOT)
+]+  static(settings.MEDIA_URL,document_root = settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.BASE_DIR / 'static')
+
+handler404 = 'sathyshop.views.custom_404'
+
+

@@ -17,6 +17,7 @@
     <div class="row">
         <aside class="col-lg-9">
     <div class="card">
+    <div class="table-responsive">
     <table class="table table-borderless table-shopping-cart">
     <thead class="text-muted">
     <tr class="small text-uppercase">
@@ -50,7 +51,7 @@
                 <a href="{% url 'carts:remove_cart' cart_item.product.id cart_item.id %}" class="btn btn-light mr-2" style="font-size: 16px; padding: 8px 12px;"> 
                     <i class="fa fa-minus"></i> 
                 </a>
-                <input type="number" min="1" name="quantity" class="form-control text-center qty-input" data-id="{{ cart_item.id }}" data-product="{{ cart_item.product.id }}" value="{{cart_item.quantity}}" style="width: 60px; height: 40px; font-size: 16px;">
+                <input type="number" min="1" max="{{ cart_item.product.stock }}" name="quantity" class="form-control text-center qty-input" data-id="{{ cart_item.id }}" data-product="{{ cart_item.product.id }}" value="{{cart_item.quantity}}" style="width: 60px; height: 40px; font-size: 16px;">
                 <form action="{% url 'carts:add_cart' cart_item.product.id %}" method="POST" class="ml-2 mb-0">
                     {% csrf_token %}
                     {% for item in cart_item.variations.all %}
@@ -75,6 +76,7 @@
     {% endfor %}
     </tbody>
     </table>
+    </div>
     </div> <!-- card.// -->
     
         </aside> <!-- col.// -->
@@ -115,22 +117,45 @@
     <!-- ========================= SECTION CONTENT END// ========================= -->
 {% endblock %}
 
+<style>
+@media (max-width: 768px){
+  .table-shopping-cart td{ vertical-align: middle; }
+  .img-sm{ width: 60px; height: 60px; object-fit: cover; }
+  .qty-input{ width: 56px !important; height: 38px !important; }
+}
+</style>
+
 {% block scripts %}
 <script>
     $(document).ready(function() {
-        // Handle quantity input changes
-        $('.qty-input').change(function() {
-            var quantity = $(this).val();
-            var cartItemId = $(this).data('id');
-            var productId = $(this).data('product');
-            
-            if (quantity < 1) {
-                $(this).val(1);
-                quantity = 1;
+        // Prevent exceeding stock via input
+        $('.qty-input').on('change', function() {
+            var $input = $(this);
+            var quantity = parseInt($input.val(), 10) || 1;
+            var max = parseInt($input.attr('max'), 10) || 1;
+            var cartItemId = $input.data('id');
+            var productId = $input.data('product');
+            if (quantity < 1) { quantity = 1; }
+            if (quantity > max) {
+                alert('Quantity cannot exceed available stock (' + max + ').');
+                quantity = max;
             }
-            
-            // Redirect to the update cart URL with the new quantity
+            $input.val(quantity);
             window.location.href = '/cart/update/' + productId + '/' + cartItemId + '/?qty=' + quantity;
+        });
+
+        // Prevent increasing via plus button beyond stock
+        $('.qty-input').each(function(){
+            var $input = $(this);
+            var max = parseInt($input.attr('max'), 10) || 1;
+            var $form = $input.closest('td').find('form');
+            $form.on('submit', function(e){
+                var current = parseInt($input.val(), 10) || 1;
+                if (current >= max) {
+                    alert('Quantity cannot exceed available stock (' + max + ').');
+                    e.preventDefault();
+                }
+            });
         });
     });
 </script>

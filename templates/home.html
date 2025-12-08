@@ -66,7 +66,7 @@
 <div class="row justify-content-center">
   {% for product in products %}
       <div class="card">
-        <div class="badge">HOT SALE</div>
+        <!-- <div class="badge">HOT SALE</div> -->
         <div class="tilt">
           <div class="img">
             <a href="{{ product.get_url }}" class="img-wrap">
@@ -76,7 +76,7 @@
         </div>
         <div class="info">
           <h2 class="title"><a href="{{ product.get_url }}" class="title">{{ product.product_name|slice:":15"}}…</a></h2>
-          <p class="desc">{{ product.product_name|slice:":30"}}…</p>
+          <p class="desc">{{ product.product_name|slice:":30" }}{% if product.product_name|length > 30 %}...{% endif %}</p>
           <div class="feats">
             {% if product.feature1 %}
             <span class="feat">{{ product.feature1 }}</span>
@@ -108,23 +108,24 @@
             {% else %}
               <p>In Stock</p>
             {% endif %}
-          </div>
-        </div>
-        <div class="text-center" >
-          <div class="rating-star mb-3">
-                <!-- 1 star -->
-                <i class="fa fa-star{% if product.averageReview < 0.5%}-o {% elif product.averageReview >= 0.5 and product.averageReview < 1 %}-half-o {% endif %}" aria-hidden="true"></i>
-                <!-- 2 star -->
-                <i class="fa fa-star{% if product.averageReview < 1.5%}-o {% elif product.averageReview >= 1.5 and product.averageReview < 2 %}-half-o {% endif %}" aria-hidden="true"></i>
-                <!-- 3 star -->
-                <i class="fa fa-star{% if product.averageReview < 2.5%}-o {% elif product.averageReview >= 2.5 and product.averageReview < 3 %}-half-o {% endif %}" aria-hidden="true"></i>
-                <!-- 4 star -->
-                <i class="fa fa-star{% if product.averageReview < 3.5%}-o {% elif product.averageReview >= 3.5 and product.averageReview < 4 %}-half-o {% endif %}" aria-hidden="true"></i>
-                <!-- 5 star -->
-                <i class="fa fa-star{% if product.averageReview < 4.5%}-o {% elif product.averageReview >= 4.5 and product.averageReview < 5 %}-half-o {% endif %}" aria-hidden="true"></i>
-          </div>
+            	<div class="text-center" >
+              <div class="rating-star mb-3">
+                  <!-- 1 star -->
+                  <i class="fa fa-star{% if product.averageReview < 0.5%}-o {% elif product.averageReview >= 0.5 and product.averageReview < 1 %}-half-o {% endif %}" aria-hidden="true"></i>
+                  <!-- 2 star -->
+                  <i class="fa fa-star{% if product.averageReview < 1.5%}-o {% elif product.averageReview >= 1.5 and product.averageReview < 2 %}-half-o {% endif %}" aria-hidden="true"></i>
+                  <!-- 3 star -->
+                  <i class="fa fa-star{% if product.averageReview < 2.5%}-o {% elif product.averageReview >= 2.5 and product.averageReview < 3 %}-half-o {% endif %}" aria-hidden="true"></i>
+                  <!-- 4 star -->
+                  <i class="fa fa-star{% if product.averageReview < 3.5%}-o {% elif product.averageReview >= 3.5 and product.averageReview < 4 %}-half-o {% endif %}" aria-hidden="true"></i>
+                  <!-- 5 star -->
+                  <i class="fa fa-star{% if product.averageReview < 4.5%}-o {% elif product.averageReview >= 4.5 and product.averageReview < 5 %}-half-o {% endif %}" aria-hidden="true"></i>
+              </div>
 
+              </div>
+          </div>
         </div>
+
       </div> <!-- card.// -->
   {% endfor %}
 </div> <!-- row.// -->
@@ -135,7 +136,7 @@
   <a href="{% url 'store' %}" class="btn btn-outline-primary btn-center p-3">View All Products</a>
 </div>
 
-<div class="container my-5" style="margin-top: 80px;">
+<div id="faq" class="container my-5" style="margin-top: 80px;">
 
 
   <h2 class="faq-heading text-center fw-bold mb-4">Frequently Asked Questions(FAQ)</h2>
@@ -275,12 +276,14 @@
 @media (max-width:992px) {
   .card {
     flex: 0 0 calc(50% - 20px); /* 2 cards per row on medium screens */
+    width: 90%;
   }
 }
 
 @media (max-width:576px) {
   .card {
-    flex: 0 0 100%; /* 1 card per row on small screens */
+    flex: 0 0 90%; /* 1 card per row on small screens */
+    width: 90%;
   }
 }
 
@@ -305,7 +308,7 @@
 .img{height:200px;overflow:hidden}
 .img img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
 .card:hover .img img{transform:scale(1.05)}
-.info{padding:20px; background-color: transparent;}
+.info{padding:20px; background-color: transparent !important;}
 .cat{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#71717A;margin-bottom:5px}
 .title{font-size:18px;font-weight:700;color:#18181B;margin:0 0 10px;letter-spacing:-.5px}
 .title a{text-decoration:none;color:#18181B}
@@ -331,5 +334,3 @@
 
 
 {% endblock %}
-</body>
-</html>

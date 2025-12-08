@@ -43,29 +43,11 @@ def register(request):
             profile.profile_picture = 'default/default-user.jpg'
             profile.save()
 
-            # User Activation
-            try:
-                current_site = get_current_site(request)
-
-                mail_subject = 'Please activate your account'
-                message = render_to_string('accounts/account_verification_email.html',{
-                    'user' : user,
-                    'domain' : current_site,
-                    'uid' : urlsafe_base64_encode(force_bytes(user.pk)),
-                    'token' : default_token_generator.make_token(user),
-                })
-                to_email = email
-                send_email = EmailMessage(mail_subject, message, to=[to_email])
-                send_email.send()
-            except Exception as e:
-                # Log the error but continue with registration
-                print(f"Email sending failed: {str(e)}")
-                # Automatically activate the user account since email couldn't be sent
-                user.is_active = True
-                user.save()
-
-            # messages.success(request, 'Thankyou for regesring with us. We have send you the verification mail.Please verify your account')
-            return redirect('/accounts/login/?command=verification&email='+email)
+            # Automatically activate and redirect to login
+            user.is_active = True
+            user.save()
+            messages.success(request, 'Registration successful. Please log in.')
+            return redirect('login')
 
     else:        
         form = RegistrationForm()

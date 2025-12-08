@@ -5,6 +5,7 @@ from store.models import Product, Variation
 from carts.models import Cart, CartItem
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 
 # Create your views here.
@@ -23,7 +24,11 @@ def update_cart(request, product_id, cart_item_id):
         # Get quantity from URL parameter
         new_quantity = int(request.GET.get('qty', 1))
         if new_quantity > 0:
-            cart_item.quantity = new_quantity
+            max_allowed = max(0, product.stock)
+            if new_quantity > max_allowed:
+                new_quantity = max_allowed
+                messages.warning(request, f"Only {max_allowed} items available in stock.")
+            cart_item.quantity = new_quantity if new_quantity > 0 else 1
             cart_item.save()
     except Exception as e:
         pass
@@ -76,8 +81,11 @@ def add_cart(request,product_id):
                     index = ex_var_list.index(product_variation)
                     item_id = id[index]
                     item=CartItem.objects.get(product=product,id=item_id)
-                    item.quantity += 1
-                    item.save()
+                    if item.quantity < product.stock:
+                        item.quantity += 1
+                        item.save()
+                    else:
+                        messages.warning(request, f"Cannot add more than available stock ({product.stock}).")
                 else:
                     item = CartItem.objects.create(product=product,quantity=1,user=current_user)
                     if len(product_variation) > 0:
@@ -142,8 +150,11 @@ def add_cart(request,product_id):
                     index = ex_var_list.index(product_variation)
                     item_id = id[index]
                     item=CartItem.objects.get(product=product,id=item_id)
-                    item.quantity += 1
-                    item.save()
+                    if item.quantity < product.stock:
+                        item.quantity += 1
+                        item.save()
+                    else:
+                        messages.warning(request, f"Cannot add more than available stock ({product.stock}).")
                 else:
                     item = CartItem.objects.create(product=product,quantity=1,cart=cart)
                     if len(product_variation) > 0:

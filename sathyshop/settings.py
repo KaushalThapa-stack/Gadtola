@@ -26,15 +26,13 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
 SECRET_KEY = 'u%72#*)_u^n0#vdvuqu6fo=rwv!_vraie4=e-&+j$$&8j!%!b5'
+# Use custom error pages in production
+# Make DEBUG configurable via env var; default to True for local development
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -52,7 +50,7 @@ INSTALLED_APPS = [
     'carts',
     'orders',
     'slider',
-    'admin_honeypot',
+    # 'admin_honeypot',
 ]
 
 
@@ -150,6 +148,8 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',  # Use full BASE_DIR path
 ]
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 
 

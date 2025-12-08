@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="section-content padding-y bg">
+  <div class="container" style="max-width: 700px;">
+    <h2 class="mb-4">Search</h2>
+    <form action="{% url 'search' %}" method="get" style="display:flex;gap:10px;">
+      <input type="text" name="keyword" class="form-control" placeholder="Search products or categories" required>
+      <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

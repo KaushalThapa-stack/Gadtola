@@ -5,7 +5,7 @@
 
 
 
-<div class="container" style="margin: 0 auto;width: 50%;padding: 50px;background: #f1f1f1;margin-top: 50px;margin-bottom: 50px;">
+<div class="order-detail container">
     <div class="row invoice row-printable">
         <div class="col-md-12">
             <!-- col-lg-12 start here -->
@@ -39,15 +39,14 @@
                                 <div class="well">
                                     <ul class="list-unstyled mb0">
                                         <li><strong>Order</strong> #{{ order.order_number }}</li>
-                                        <li><strong>Transaction</strong> #{{ order.payment.payment_id }}</li> 
                                         <li><strong>Order Date:</strong> {{ order.created_at }}</li>
-                                        <li><strong>Status:</strong> {{ order.payment.status }}</li>
+                                        <li><strong>Status:</strong> {{ order.status }}</li>
                                     </ul>
                                 </div>
                             </div>
                            
                             <div class="invoice-items">
-                                <div class="table-responsive" style="overflow: hidden; outline: none;" tabindex="0">
+                                <div class="table-responsive" style="overflow-x: auto;" tabindex="0">
                                     <table class="table table-bordered">
                                         <thead>
                                             <tr>
@@ -105,6 +104,15 @@
         <!-- col-lg-12 end here -->
     </div>
     </div>
+
+<style>
+.order-detail { max-width: 900px; width: 100%; padding: 24px; background: #f1f1f1; margin-top: 24px; margin-bottom: 24px; }
+.order-detail .panel { width: 100%; }
+.order-detail .invoice-logo img { max-height: 32px; }
+.order-detail .table { width: 100%; }
+@media (max-width: 992px) { .order-detail { max-width: 100%; padding: 16px; } }
+@media (max-width: 576px) { .order-detail { padding: 12px; } .order-detail .table thead { font-size: 14px; } .order-detail .table td, .order-detail .table th { font-size: 14px; } }
+</style>
 
 
 {% endblock %}
