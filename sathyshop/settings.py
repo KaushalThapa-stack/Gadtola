@@ -29,8 +29,8 @@ SECRET_KEY = config('SECRET_KEY')
 SECRET_KEY = 'u%72#*)_u^n0#vdvuqu6fo=rwv!_vraie4=e-&+j$$&8j!%!b5'
 # Use custom error pages in production
 # Make DEBUG configurable via env var; default to True for local development
+# DEBUG = config('DEBUG', default=True, cast=bool)
 DEBUG = config('DEBUG', default=True, cast=bool)
-
 
 ALLOWED_HOSTS = ['*']
 

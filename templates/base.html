@@ -17,6 +17,23 @@
 <link href="{% static 'images/favicon.ico' %}" rel="shortcut icon" type="image/x-icon">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  #footer-sticky {
+    margin-top: auto;
+  }
+</style>
+
 <!-- jQuery -->
 <script src="{% static 'js/jquery-2.0.0.min.js' %}" type="text/javascript"></script>
 
@@ -68,8 +85,9 @@ $(document).ready(function() {
 
 
 <!-- footer -->
-
+<div id="footer-sticky">
 {% include 'includes/footer.html' %}
+</div>
 
 {% block scripts %}{% endblock %}
 

@@ -217,10 +217,12 @@
   box-shadow: 0 5px 20px rgba(0,0,0,.1);
   transition: .3s;
   font-family: 'Segoe UI', sans-serif;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   cursor: pointer;
-  height: 100%; /* ensure cards have equal height in grid */
+  min-height: 100%; /* ensure cards have equal height in grid */
+  display: flex;
+  flex-direction: column;
 }
 
 .card:hover{transform:translateY(-5px);box-shadow:0 10px 25px rgba(0,0,0,.15)}
