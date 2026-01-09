@@ -59,6 +59,9 @@
       min-width: 160px;
       box-shadow: 0 3px 6px rgba(0,0,0,0.15);
       z-index: 100;
+      /* limit height roughly to 10 items and enable scrolling when needed */
+      max-height: 420px;
+      overflow-y: auto;
     }
     .dropdown-content a {
       display: block;
@@ -74,6 +77,19 @@
     .nav-links li:hover .dropdown-content {
       display: block;
     }
+    /* scrollbar styling for dropdowns - only visible on overflow */
+    .dropdown-content::-webkit-scrollbar { width: 8px; }
+    .dropdown-content::-webkit-scrollbar-track { background: transparent; }
+    .dropdown-content::-webkit-scrollbar-thumb { background: #999; border-radius: 4px; }
+    .dropdown-content::-webkit-scrollbar-thumb:hover { background: #666; }
+    .dropdown-content { scrollbar-width: thin; scrollbar-color: #999 transparent; }
+    
+    /* Mobile categories scrollbar styling */
+    .mobile-cats::-webkit-scrollbar { width: 8px; }
+    .mobile-cats::-webkit-scrollbar-track { background: transparent; }
+    .mobile-cats::-webkit-scrollbar-thumb { background: #999; border-radius: 4px; }
+    .mobile-cats::-webkit-scrollbar-thumb:hover { background: #666; }
+    .mobile-cats { scrollbar-width: thin; scrollbar-color: #999 transparent; }
 /* Search */
 .nav-search {
   flex: 1.2; /* increased width */
@@ -202,12 +218,17 @@
   <div class="nav-left">
     <!-- Logo -->
     <a href="{% url 'home' %}">
-      <img src="{% static 'images/logo2.png' %}" alt="Logo" style="height: 30px;">
+      <img src="{% static 'images/gadtola.jpg' %}" alt="Logo" style="height: 50px; width: 50px;">
     </a>
 
     <!-- Nav Links -->
     <ul class="nav-links">
-      <!-- Categories (backend dynamic loop) -->
+    
+
+      <li><a href="{% url 'store' %}">Store</a></li>
+      <li><a href="{% url 'contact' %}">Contact Us</a></li>
+
+        <!-- Categories (backend dynamic loop) -->
       <li>
         <a href="#">Categories ▾</a>
         <div class="dropdown-content">
@@ -215,14 +236,9 @@
             <a href="{{ category.get_url }}">{{ category.category_name }}</a>
           {% endfor %}
           <div class="dropdown-divider"></div>
-          <a href="#">Refurbished</a>
-          <a href="#">Clearance Sale</a>
-          <a href="#">New Arrivals</a>
+          <a href="{% url 'store' %}">All Products</a>
         </div>
       </li>
-
-      <li><a href="{% url 'store' %}">Store</a></li>
-      <li><a href="{% url 'contact' %}">Contact Us</a></li>
 
       <!-- More -->
       <li>
@@ -287,11 +303,15 @@
       <li class="mb-2"><a href="{% url 'contact' %}">Contact Us</a></li>
       <li class="mb-2"><a href="{% url 'about' %}">About</a></li>
       <li class="mb-2"><a href="{% url 'home' %}#faq">FAQ</a></li>
-      <li class="mb-2"><strong>Categories</strong></li>
-      {% for category in links %}
-        <li class="mb-1"><a href="{{ category.get_url }}">{{ category.category_name }}</a></li>
-      {% endfor %}
     </ul>
+    <div class="mobile-cats" style="max-height:320px;overflow-y:auto;padding-right:6px;">
+      <strong class="d-block mb-2">Categories</strong>
+      <ul class="list-unstyled mb-0">
+        {% for category in links %}
+          <li class="mb-1"><a href="{{ category.get_url }}">{{ category.category_name }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
     <hr>
     <div>
       {% if user.is_authenticated %}
