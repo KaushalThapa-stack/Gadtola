@@ -1,0 +1,68 @@
+/* Custom admin overrides */
+:root{
+  --admin-accent: #0b5ed7; /* blue accent */
+  --admin-bg: #0f1113; /* dark background for header area */
+  --admin-contrast: #ffffff;
+}
+
+/* Header / top bar */
+#header, header#header {
+  background: var(--admin-accent) !important;
+  border-bottom: 4px solid rgba(0,0,0,0.25);
+}
+
+/* Branding and user tools (ensure visible on colored header) */
+#header .branding, #header .branding a, #header .branding h1, #header .branding h1 a,
+#user-tools, #user-tools a, #user-tools span {
+  color: var(--admin-contrast) !important;
+}
+
+/* Make the site name link bold and properly aligned */
+#site-name a {
+  color: var(--admin-contrast) !important;
+  font-weight: 600;
+}
+
+/* Left navigation sidebar tweaks */
+#nav-sidebar {
+  background: #0b0d0f;
+  border-right: 1px solid rgba(255,255,255,0.04);
+}
+
+#nav-sidebar a {
+  color: rgba(255,255,255,0.85);
+}
+
+/* Links and accents inside the admin */
+a, .model-link, .inline-related h3, .submit-row a {
+  color: var(--admin-contrast) !important;
+}
+
+/* Improve form inputs contrast and modules */
+fieldset.module, .module.aligned {
+  background: #111214;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+/* Login box visual */
+.login {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  background: #0f1113;
+}
+
+/* Buttons area */
+.submit-row .button, .submit-row input[type=submit] {
+  background: rgba(11,94,215,0.9);
+  color: #fff;
+}
+
+/* Breadcrumbs / path */
+.breadcrumbs, .breadcrumb {
+  color: rgba(255,255,255,0.9);
+}
+
+/* Small responsive tweak */
+@media (max-width: 768px){
+  #header { padding: 8px 10px !important; }
+}
+

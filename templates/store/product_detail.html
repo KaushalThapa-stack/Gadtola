@@ -265,7 +265,7 @@
               {% endfor %}
             </div>
 
-            <div class="v1-min-240">Minimum Order : 45 Units</div>
+            <!-- <div class="v1-min-240">Minimum Order : 45 Units</div> -->
 
             <div class="v1-feats-250">
               {% if single_product %}
@@ -299,14 +299,16 @@
                 </button>
 
                 <!-- Contact Us -->
-                <button class="v1-btn-261 v1-btn-green-263" type="submit">
-                  <!-- Call icon -->
-                  <svg class="v1-btn-ico-264" xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="#E3E3E3">
-                    <path d="M19.95 21q-3.3 0-6.462-1.275Q10.325 18.45 7.6 15.725 4.875 13 3.6 9.838 2.325 6.675 2.325 3.375q0-.375.262-.675Q2.85 2.4 3.3 2.25L7.05 1.3q.375-.1.7.05.325.15.525.5l2.1 3.9q.2.35.125.725-.075.375-.35.65l-2.25 2.3q.75 1.5 1.988 2.738 1.237 1.237 2.737 1.987l2.3-2.25q.275-.275.65-.35.375-.075.725.125l3.9 2.1q.35.2.5.525.15.325.05.7l-.95 3.75q-.1.45-.4.712-.3.263-.7.263Z"/>
-                  </svg>
-                  Contact Us
-                </button>
+                  <button onclick="chatMe()" class="v1-btn-261 v1-btn-green-263" type="button">
+                    <!-- Call icon -->
+                    <svg class="v1-btn-ico-264" xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="#E3E3E3">
+                      <path d="M19.95 21q-3.3 0-6.462-1.275Q10.325 18.45 7.6 15.725 4.875 13 3.6 9.838 2.325 6.675 2.325 3.375q0-.375.262-.675Q2.85 2.4 3.3 2.25L7.05 1.3q.375-.1.7.05.325.15.525.5l2.1 3.9q.2.35.125.725-.075.375-.35.65l-2.25 2.3q.75 1.5 1.988 2.738 1.237 1.237 2.737 1.987l2.3-2.25q.275-.275.65-.35.375-.075.725.125l3.9 2.1q.35.2.5.525.15.325.05.7l-.95 3.75q-.1.45-.4.712-.3.263-.7.263Z"/>
+                    </svg>
+                    Contact Us
+                  </button>
+                
               {% endif %}
+              
             </div>
 
 
@@ -504,6 +506,19 @@ if (swatches.length > 0) {
 
 
   // Zoom effect (your code stays the same)
+
+
+ //whatsapp button
+  function chatMe() {
+    const phone = "9779848421050";
+    const text = "Hello";
+
+    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
+    } else {
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank");
+    }
+  } 
 
 </script>
 
