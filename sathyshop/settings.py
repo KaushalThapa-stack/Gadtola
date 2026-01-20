@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',     
+    'django.contrib.sitemaps', 
     'category',
     'accounts',
     'store',
@@ -52,6 +54,8 @@ INSTALLED_APPS = [
     'slider',
     # 'admin_honeypot',
 ]
+
+SITE_ID = 1
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -77,6 +81,16 @@ CSRF_COOKIE_HTTPONLY = False  # JavaScript needs access to the cookie
 CSRF_USE_SESSIONS = False  # Store CSRF token in cookie, not in session
 CSRF_COOKIE_SAMESITE = 'Lax'  # Prevents CSRF in most cross-site browsing contexts
 ROOT_URLCONF = 'sathyshop.urls'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://gadtolasuppliers.com.np",
+    "https://www.gadtolasuppliers.com.np",
+]
+
+ROOT_URLCONF = 'sathyshop.urls'
+
 
 TEMPLATES = [
     {

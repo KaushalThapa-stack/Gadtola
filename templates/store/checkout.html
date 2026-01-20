@@ -15,7 +15,7 @@
     <div class="card">
         <div class="card-body">
             <h4 class="cart-title mb-4">Billing Address</h4>
-            <form action="{% url 'place_order' %}" method="POST">
+            <form id="checkout-form" action="{% url 'place_order' %}" method="POST">
                 {% csrf_token %}
                 <div class="form-row">
                     <div class="col form_group">
@@ -33,10 +33,26 @@
                         <input type="email" name="email" class="form-control" required>
                     </div>
                     <div class="col form_group">
-                        <label for="">Phone Number</label>
-                        <input type="" name="phone" class="form-control" required>
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" class="form-control" inputmode="numeric" maxlength="10" pattern="\d{10}" required>
                     </div>
                 </div>
+        <script>
+        (function(){
+            var form = document.getElementById('checkout-form');
+            if(!form) return;
+            form.addEventListener('submit', function(e){
+                var phoneEl = document.getElementById('phone');
+                if(!phoneEl) return;
+                var phone = phoneEl.value.replace(/\D/g, '');
+                if(phone.length !== 10){
+                    e.preventDefault();
+                    alert('Incorrect phone number');
+                    phoneEl.focus();
+                }
+            });
+        })();
+        </script>
                 <div class="form-row">
                     <div class="col form_group">
                         <label for="">State</label>
