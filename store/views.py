@@ -13,16 +13,25 @@ from django.contrib import messages
 from orders.models import OrderProduct
 
 
-def store(request, parent_slug=None, child_slug=None):
+def store(request, parent_slug=None, child_slug=None, slug=None):
     """
     Store view supporting parent and child category filtering
     parent_slug: outfit, shoes, or combos
     child_slug: specific child category slug
+    slug: legacy category slug (backward compatibility)
     """
     products = Product.objects.filter(is_available=True)
     parent_category = None
     child_category = None
     child_categories_list = []
+    
+    # Handle legacy category slug
+    if slug:
+        try:
+            category = Category.objects.get(slug=slug)
+            products = products.filter(category=category)
+        except Category.DoesNotExist:
+            pass
     
     if parent_slug:
         try:
