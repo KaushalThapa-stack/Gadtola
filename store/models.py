@@ -82,19 +82,27 @@ class Product(models.Model):
 
     def is_combo(self):
         """Check if product is from Combos parent category"""
-        return self.category.parent.key == 'combos'
+        if self.child_category:
+            return self.child_category.parent.key == 'combos'
+        return False
 
     def is_outfit(self):
         """Check if product is from Outfit parent category"""
-        return self.category.parent.key == 'outfit'
+        if self.child_category:
+            return self.child_category.parent.key == 'outfit'
+        return False
 
     def is_shoes(self):
         """Check if product is from Shoes parent category"""
-        return self.category.parent.key == 'shoes'
+        if self.child_category:
+            return self.child_category.parent.key == 'shoes'
+        return False
 
     def get_parent_category_key(self):
         """Get parent category key"""
-        return self.category.parent.key
+        if self.child_category:
+            return self.child_category.parent.key
+        return None
 
 
 
