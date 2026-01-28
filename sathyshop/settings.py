@@ -186,11 +186,6 @@ MESSAGE_TAGS = {
 }
 
 
-# WhatsApp Configuration
-# Format: Country Code + Phone Number (without + symbol)
-# Example: 919876543210 for India +91 9876543210
-OWNER_WHATSAPP_NUMBER = '919876543210'  # Configure with actual WhatsApp number
-
 
 # SMTP configuration 
 

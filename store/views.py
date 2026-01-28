@@ -1,64 +1,95 @@
 
-from unicodedata import category
 from django.shortcuts import get_object_or_404, render, redirect
-from category.models import Category
+from django.http import JsonResponse
+
+from category.models import Category, ChildCategory, ParentCategory
 from .models import Product, ReviewRating
-from django.http import HttpResponse
 from carts.models import CartItem
 from carts.views import _cart_id
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Avg
 from .form import ReviewForm
 from django.contrib import messages
+from orders.models import OrderProduct
 
 
-# Create your views here.
-
-for product in Product.objects.all():
-    product.display_features = [f for f in [product.feature1, product.feature2, product.feature3, product.feature4, product.feature5] if f][:3]
-
-
-def store(request, category_slug=None):
-    categories = None
-    parducts = None
-
-    if category_slug != None:
-        categories = get_object_or_404(Category, slug=category_slug)
-        products = Product.objects.filter(category=categories, is_available=True)
-        paginator = Paginator(products, 1)
-        page = request.GET.get('page')
-        paged_products = paginator.get_page(page)
-        product_count = products.count()
-    else:
-        products = Product.objects.all().filter(is_available=True).order_by('id')
-        paginator = Paginator(products, 9)
-        page = request.GET.get('page')
-        paged_products = paginator.get_page(page)
-        product_count = products.count()
-
+def store(request, parent_slug=None, child_slug=None):
+    """
+    Store view supporting parent and child category filtering
+    parent_slug: outfit, shoes, or combos
+    child_slug: specific child category slug
+    """
+    products = Product.objects.filter(is_available=True)
+    parent_category = None
+    child_category = None
+    child_categories_list = []
+    
+    if parent_slug:
+        try:
+            parent_category = ParentCategory.objects.get(slug=parent_slug)
+            # Filter products by parent category
+            products = products.filter(child_category__parent=parent_category)
+            # Get all child categories under this parent
+            child_categories_list = parent_category.children.all()
+            
+            if child_slug:
+                try:
+                    child_category = ChildCategory.objects.get(slug=child_slug, parent=parent_category)
+                    # Further filter by child category
+                    products = products.filter(child_category=child_category)
+                except ChildCategory.DoesNotExist:
+                    pass
+        except ParentCategory.DoesNotExist:
+            pass
+    
+    # Pagination
+    paginator = Paginator(products.order_by('-created_date'), 9)
+    page = request.GET.get('page')
+    paged_products = paginator.get_page(page)
+    product_count = products.count()
+    
     context = {
         'products': paged_products,
         'product_count': product_count,
+        'parent_category': parent_category,
+        'child_category': child_category,
+        'child_categories': child_categories_list,
+        'parent_slug': parent_slug,
     }
-
+    
     return render(request, 'store/store.html', context)
 
 
-def product_detail(request, category_slug, product_slug):
-    """Product detail page with WhatsApp ordering capability"""
+def product_detail(request, parent_slug, product_slug):
+    """Product detail view with combo size support"""
     try:
-        single_product = Product.objects.get(category__slug=category_slug, slug=product_slug)
-        in_cart = CartItem.objects.filter(cart__cart_id=_cart_id(request), product=single_product).exists()
-    except Exception as e:
-        raise e
+        parent_category = ParentCategory.objects.get(slug=parent_slug)
+        single_product = Product.objects.get(
+            child_category__parent=parent_category,
+            slug=product_slug
+        )
+        in_cart = CartItem.objects.filter(
+            cart__cart_id=_cart_id(request),
+            product=single_product
+        ).exists()
+    except (ParentCategory.DoesNotExist, Product.DoesNotExist):
+        raise
 
-    # Initialize variables
-    reviews = None
+    # Check if product is in user's orders
+    orderproduct = None
+    if request.user.is_authenticated:
+        try:
+            orderproduct = OrderProduct.objects.filter(
+                user=request.user,
+                product_id=single_product.id
+            ).exists()
+        except OrderProduct.DoesNotExist:
+            orderproduct = None
     
-    # GET reviews (no user auth needed)
+    # Get reviews
     reviews = ReviewRating.objects.filter(product_id=single_product.id, status=True)
     
-    # Get 5 random products (excluding current product)
+    # Get random products for "You may also like"
     import random
     all_products = list(Product.objects.filter(is_available=True).exclude(id=single_product.id))
     random_products = random.sample(all_products, min(len(all_products), 5))
@@ -66,21 +97,26 @@ def product_detail(request, category_slug, product_slug):
     context = {
         'single_product': single_product,
         'in_cart': in_cart,
+        'orderproduct': orderproduct,
         'reviews': reviews,
         'random_products': random_products,
     }
+    
     return render(request, 'store/product_detail.html', context)
 
 
-
 def search(request):
+    """Search products"""
+    products = Product.objects.filter(is_available=True)
+    product_count = 0
+    
     if 'keyword' in request.GET:
         keyword = request.GET['keyword']
         if keyword:
-            products = Product.objects.order_by('-created_date').filter(
+            products = products.filter(
                 Q(discription__icontains=keyword) |
                 Q(product_name__icontains=keyword) |
-                Q(category__category_name__icontains=keyword)
+                Q(child_category__name__icontains=keyword)
             )
             product_count = products.count()
     
@@ -105,19 +141,25 @@ def search(request):
 
 
 def submit_review(request, product_id):
-    """Submit product review (no authentication required)"""
+    """Submit or update a product review"""
     url = request.META.get('HTTP_REFERER')
     if request.method == 'POST':
-        form = ReviewForm(request.POST)
-        if form.is_valid():
-            data = ReviewRating()
-            data.subject = form.cleaned_data['subject']
-            data.review = form.cleaned_data['review']
-            data.rating = form.cleaned_data['rating']
-            data.ip = request.META.get('REMOTE_ADDR')
-            data.product_id = product_id
-            # No user_id since we're not using authentication
-            data.save()
-            messages.success(request, 'Thank you! Your review has been submitted.')
+        try:
+            reviews = ReviewRating.objects.get(user__id=request.user.id, product__id=product_id)
+            form = ReviewForm(request.POST, instance=reviews)
+            form.save()
+            messages.success(request, 'Thank you! Your review has been updated.')
             return redirect(url)
-
+        except ReviewRating.DoesNotExist:
+            form = ReviewForm(request.POST)
+            if form.is_valid():
+                data = ReviewRating()
+                data.subject = form.cleaned_data['subject']
+                data.review = form.cleaned_data['review']
+                data.rating = form.cleaned_data['rating']
+                data.ip = request.META.get('REMOTE_ADDR')
+                data.product_id = product_id
+                data.user_id = request.user.id
+                data.save()
+                messages.success(request, 'Thank you! Your review has been submitted.')
+                return redirect(url)

@@ -1,12 +1,7 @@
 from django.db import models
-from category.models import Category
+from category.models import Category, ChildCategory
 from django.urls import reverse
-
-# Create your models here.
-
-from django.db import models
-from category.models import Category
-from django.urls import reverse
+from accounts.models import Account
 from django.core.exceptions import ValidationError
 from django.db.models import Avg, Count
 
@@ -37,7 +32,13 @@ class Product(models.Model):
 
     stock        = models.IntegerField()
     is_available = models.BooleanField(default=True)
-    category     = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category     = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
+    child_category = models.ForeignKey(ChildCategory, on_delete=models.CASCADE, null=True, blank=True)
+    
+    # Size data for combos (stores selected size combinations)
+    # Format: {'default_upper': 'S', 'default_lower': '30', 'default_shoe': '42'}
+    combo_size_config = models.JSONField(default=dict, blank=True)
+    
     created_date = models.DateTimeField(auto_now_add=True)
     modified_at  = models.DateTimeField(auto_now=True)
 
@@ -48,7 +49,11 @@ class Product(models.Model):
         return [f for f in all_features if f][:3]
 
     def get_url(self):
-        return reverse('product_detail', args=[self.category.slug, self.slug])
+        if self.child_category:
+            return reverse('product_detail', args=[self.child_category.parent.slug, self.slug])
+        elif self.category:
+            return reverse('product_detail', args=[self.category.slug, self.slug])
+        return reverse('store')
 
     def averageReview(self):
         reviews = ReviewRating.objects.filter(product=self, status=True).aggregate(average=Avg('rating'))
@@ -74,6 +79,22 @@ class Product(models.Model):
 
     def __str__(self):
         return self.product_name
+
+    def is_combo(self):
+        """Check if product is from Combos parent category"""
+        return self.category.parent.key == 'combos'
+
+    def is_outfit(self):
+        """Check if product is from Outfit parent category"""
+        return self.category.parent.key == 'outfit'
+
+    def is_shoes(self):
+        """Check if product is from Shoes parent category"""
+        return self.category.parent.key == 'shoes'
+
+    def get_parent_category_key(self):
+        """Get parent category key"""
+        return self.category.parent.key
 
 
 
@@ -108,11 +129,8 @@ class Variation(models.Model):
 
 
 class ReviewRating(models.Model):
-    """
-    Product reviews - No user authentication.
-    Identified by IP address instead.
-    """
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    user = models.ForeignKey(Account, on_delete=models.CASCADE)
     subject = models.CharField(max_length=100, blank=True)
     review = models.TextField(max_length=500, blank=True)
     rating = models.FloatField()

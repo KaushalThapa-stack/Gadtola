@@ -17,14 +17,13 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('store/', include('store.urls')),
     path('cart/', include('carts.urls')),
-    # Authentication removed - system is now anonymous/session-based only
-    # path('accounts/', include('accounts.urls')),  # REMOVED
+    path('accounts/', include('accounts.urls')),
     path('contact/', views.contact, name='contact'),
     path('about/', views.about, name='about'),
     path('searchbar/', views.search_page, name='search_page'),
 
-    # Orders URLs removed - no order database storage, only WhatsApp
-    # path('orders/', include('orders.urls')),  # REMOVED
+    # orders
+    path('orders/', include('orders.urls')),
 
     # sitemap
     path(
@@ -40,4 +39,3 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.BASE_DIR / 'static')
 
 handler404 = 'sathyshop.views.custom_404'
-

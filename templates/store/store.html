@@ -46,9 +46,25 @@
 						<div class="sidebar-cats" style="max-height:420px;overflow-y:auto;padding-right:6px;">
 						  <ul class="list-menu mb-0">
 							  <li><a href="{% url 'store' %}">All Products</a></li>
+							  
+							  <!-- Show child categories if parent is selected -->
+							  {% if parent_category and child_categories %}
+							  <li><strong>{{ parent_category.name }}</strong>
+							  	<ul style="margin-left: 15px;">
+							  		<li><a href="{% url 'products_by_parent_category' parent_category.slug %}">All {{ parent_category.name }}</a></li>
+							  		{% for child in child_categories %}
+							  		<li>
+							  			<a href="{% url 'products_by_child_category' parent_category.slug child.slug %}">{{ child.name }}</a>
+							  		</li>
+							  		{% endfor %}
+							  	</ul>
+							  </li>
+							  {% else %}
+							  <!-- Show legacy categories for backward compatibility -->
 							  {% for category in links %}
 							  <li><a href="{{ category.get_url }}">{{ category.category_name }}</a></li>
 							  {% endfor %}
+							  {% endif %}
 						  </ul>
 						</div>
                     </div> <!-- card-body.// -->

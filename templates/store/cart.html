@@ -85,18 +85,22 @@
             <div class="card">
             <div class="card-body">
                 <dl class="dlist-align">
-                  <dt>Total:</dt>
+                  <dt>Total price:</dt>
+                  <dd class="text-right">Rs. {{total}}</dd>
+                </dl>
+                <dl class="dlist-align">
+                  <dt>Tax:</dt>
+                  <dd class="text-right"> Rs. {{tax}}</dd>
+                </dl>
+                <dl class="dlist-align">
+                  <dt>Grand Total:</dt>
                   <dd class="text-right text-dark b"><strong>Rs. {{grand_total}}</strong></dd>
                 </dl>
                 <hr>
                 <p class="text-center mb-3">
-                    <!-- WhatsApp Payment Method -->
-                    <i class="fab fa-whatsapp" style="color: #25D366; font-size: 32px;"></i>
+                    <img src="{% static 'images/misc/payments.png' %}" height="26">
                 </p>
-                <!-- WhatsApp Order Button -->
-                <button class="btn btn-success btn-block" id="whatsapp-order-btn" style="background-color: #25D366; border: none;">
-                    <i class="fab fa-whatsapp"></i> Place Order on WhatsApp
-                </button>
+                <a href="{% url 'carts:checkout' %}" class="btn btn-primary btn-block"> Checkout </a>
                 <a href="{% url 'store' %}" class="btn btn-light btn-block">Continue Shopping</a>
             </div> <!-- card-body.// -->
             </div> <!-- card.// -->
@@ -109,35 +113,8 @@
     <!-- ============================ COMPONENT 1 END .// ================================= -->
     
     </div> <!-- container .//  -->
-</section>
-<!-- ========================= SECTION CONTENT END// ========================= -->
-
-<!-- Hidden data for JavaScript -->
-<script type="application/json" id="cart-data">
-{
-    "items": [
-        {% for cart_item in cart_items %}
-        {
-            "product_name": "{{ cart_item.product.product_name }}",
-            "quantity": {{ cart_item.quantity }},
-            "price": {{ cart_item.product.price }},
-            "image_url": "{{ cart_item.product.image1.url }}",
-            "variations": [
-                {% for var in cart_item.variations.all %}
-                {
-                    "category": "{{ var.variation_category }}",
-                    "value": "{{ var.variation_value }}"
-                }{% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ]
-        }{% if not forloop.last %},{% endif %}
-        {% endfor %}
-    ],
-    "grand_total": {{ grand_total }},
-    "total": {{ total }}
-}
-</script>
-
+    </section>
+    <!-- ========================= SECTION CONTENT END// ========================= -->
 {% endblock %}
 
 <style>
@@ -180,40 +157,6 @@
                 }
             });
         });
-
-        // WhatsApp Order Button Click Handler
-        $('#whatsapp-order-btn').on('click', function() {
-            var cartData = JSON.parse($('#cart-data').html());
-            var message = buildWhatsAppMessage(cartData);
-            var whatsappUrl = 'https://wa.me/9779805740156?text=' + encodeURIComponent(message);//number change here
-            window.open(whatsappUrl, '_blank');
-        });
-
-        // Build WhatsApp message from cart data
-        function buildWhatsAppMessage(cartData) {
-            var message = "Order Summary\n\n";
-            
-            cartData.items.forEach(function(item, idx) {
-                message += (idx + 1) + ". " + item.product_name + "\n";
-                
-                // Add variations if any
-                if (item.variations && item.variations.length > 0) {
-                    item.variations.forEach(function(var_item) {
-                        message += "   - " + var_item.category.charAt(0).toUpperCase() + var_item.category.slice(1) + ": " + var_item.value + "\n";
-                    });
-                }
-                
-                var itemTotal = item.price * item.quantity;
-                message += "   Qty: " + item.quantity + " x Rs." + item.price + " = Rs." + itemTotal + "\n\n";
-            });
-            
-            message += "─────────────────\n";
-            message += "Total: Rs. " + cartData.grand_total + "\n\n";
-            message += "Hey! this is my order can we proceed?";
-            
-            return message;
-        }
     });
 </script>
 {% endblock %}
-
