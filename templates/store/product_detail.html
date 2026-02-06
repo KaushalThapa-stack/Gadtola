@@ -118,6 +118,41 @@
       border-color: var(--v1-140-brand);
       font-weight: 600;
     }
+    /* color image button */
+    .v1-color-img{background:transparent;border:2px solid transparent;padding:4px;border-radius:8px}
+    .v1-color-img.active{border-color:#d97706;box-shadow:0 0 0 3px rgba(217,119,6,0.08)}
+    
+    /* variation image thumbnails */
+    .variation-thumb-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    
+    .variation-thumb {
+      width: 64px;
+      height: 64px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid #d1d5db;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .variation-thumb:hover {
+      transform: scale(1.05);
+      border-color: #b8860b;
+    }
+    
+    .variation-thumb.active {
+      border: 3px solid #b8860b;
+      box-shadow: 0 0 8px rgba(184, 134, 11, 0.4);
+    }
+
+    /* size button */
+    .v1-size-btn{width:72px;height:56px;border:1px solid var(--v1-180-border);background:#fff;margin-right:12px;border-radius:8px;font-weight:600;cursor:pointer}
+    .v1-size-btn.active{border-color:#d97706;color:#d97706}
     .v1-min-240{font-size:13px;color:var(--v1-130-sub);margin:14px 0 16px}
 
     .v1-feats-250 {
@@ -223,17 +258,27 @@
       {% if single_product %}
       <!-- Left: Gallery -->
       <div class="v1-gallery-110">
-        <div class="v1-thumbs-130">
-          <a href="#"><img class="v1-thumb-131" src="{{ single_product.image1.url }}" alt="Thumbnail 1"></a>
-          <a href="#"><img class="v1-thumb-131" src="{{ single_product.image2.url }}" alt="Thumbnail 2"></a>
-          <a href="#"><img class="v1-thumb-131" src="{{ single_product.image3.url }}" alt="Thumbnail 3"></a>
-          <a href="#"><img class="v1-thumb-131" src="{{ single_product.image4.url }}" alt="Thumbnail 4"></a>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+          <button id="thumb-up" type="button" style="background:#fff;border:1px solid var(--v1-180-border);border-radius:6px;padding:6px;cursor:pointer">▲</button>
+          <div id="thumbs-container" class="v1-thumbs-130" style="overflow-y:auto;max-height:420px;display:flex;flex-direction:column;gap:8px;padding-right:6px">
+            {# product images (fallback if no ProductImage instances) #}
+            {% if single_product.product_images.exists %}
+              {% for img in single_product.product_images.all %}
+                <img class="v1-thumb-131" data-src="{{ img.image.url }}" src="{{ img.image.url }}" alt="{{ img.image_name|default:single_product.product_name }}">
+              {% endfor %}
+            {% else %}
+              {% if single_product.image1 %}<img class="v1-thumb-131" data-src="{{ single_product.image1.url }}" src="{{ single_product.image1.url }}" alt="thumb">{% endif %}
+              {% if single_product.image2 %}<img class="v1-thumb-131" data-src="{{ single_product.image2.url }}" src="{{ single_product.image2.url }}" alt="thumb">{% endif %}
+              {% if single_product.image3 %}<img class="v1-thumb-131" data-src="{{ single_product.image3.url }}" src="{{ single_product.image3.url }}" alt="thumb">{% endif %}
+              {% if single_product.image4 %}<img class="v1-thumb-131" data-src="{{ single_product.image4.url }}" src="{{ single_product.image4.url }}" alt="thumb">{% endif %}
+              {% if single_product.image5 %}<img class="v1-thumb-131" data-src="{{ single_product.image5.url }}" src="{{ single_product.image5.url }}" alt="thumb">{% endif %}
+            {% endif %}
+          </div>
+          <button id="thumb-down" type="button" style="background:#fff;border:1px solid var(--v1-180-border);border-radius:6px;padding:6px;cursor:pointer">▼</button>
         </div>
 
         <div class="v1-hero-120">
-          <!-- If you have the product image, place it below and remove the gradient bg -->
-          <img id="main-product-img" class="v1-hero-img-121" src="{{ single_product.image1.url }}" alt="Boat Earphones"> 
-          
+          <img id="main-product-img" class="v1-hero-img-121" src="{% if single_product.product_images.exists %}{% with pimg=single_product.product_images.all|first %}{{ pimg.image.url }}{% endwith %}{% elif single_product.image1 %}{{ single_product.image1.url }}{% elif single_product.image2 %}{{ single_product.image2.url }}{% else %}{% if single_product.image3 %}{{ single_product.image3.url }}{% endif %}{% endif %}" alt="{{ single_product.product_name }}"> 
         </div>
       </div>
 
@@ -253,68 +298,103 @@
             </div>
             <div class="v1-tax-214">NRP (Inclusive of all taxes)</div>
 
+            <!-- Upper Product Size Selector (button UI) -->
+            {% if single_product.is_upper %}
+            <div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+              <h5 style="margin-bottom: 12px;">Size</h5>
+              <div class="size-group" data-group="upper" data-default="{{ single_product.combo_size_config.default_upper|default_if_none:'' }}">
+                {% for size in single_product.get_available_sizes %}
+                  <button type="button" class="v1-size-btn" data-size="{{ size }}">{{ size }}</button>
+                {% endfor %}
+                <input type="hidden" name="upper_size" id="upper_size_input">
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Lower Product Size Selector (button UI) -->
+            {% if single_product.is_lower %}
+            <div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+              <h5 style="margin-bottom: 12px;">Size</h5>
+              <div class="size-group" data-group="lower" data-default="{{ single_product.combo_size_config.default_lower|default_if_none:'' }}">
+                {% for size in single_product.get_available_sizes %}
+                  <button type="button" class="v1-size-btn" data-size="{{ size }}">{{ size }}</button>
+                {% endfor %}
+                <input type="hidden" name="lower_size" id="lower_size_input">
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Shoes Product Size Selector (button UI) -->
+            {% if single_product.is_shoes %}
+            <div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+              <h5 style="margin-bottom: 12px;">Size</h5>
+              <div class="size-group" data-group="shoes" data-default="{{ single_product.combo_size_config.default_shoe|default_if_none:'' }}">
+                {% for size in single_product.get_available_sizes %}
+                  <button type="button" class="v1-size-btn" data-size="{{ size }}">{{ size }}</button>
+                {% endfor %}
+                <input type="hidden" name="shoe_size" id="shoe_size_input">
+              </div>
+            </div>
+            {% endif %}
+
             <!-- Combo Size Selectors (if product is combo) -->
             {% if single_product.is_combo %}
             <div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px;">
-              <h5 style="margin-bottom: 15px;">Select Sizes:</h5>
+              <h5 style="margin-bottom: 12px;">Size</h5>
               
               <!-- Upper Size Selector -->
               <div style="margin-bottom: 15px;">
-                <label for="upper-size" style="display: block; margin-bottom: 5px; font-weight: 500;">Upper Size:</label>
-                <select id="upper-size" name="upper_size" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                  <option value="">Select upper size</option>
-                  {% for size in single_product.category.get_upper_sizes %}
-                    {% if single_product.combo_size_config.default_upper == size %}
-                      <option value="{{ size }}" selected>{{ size }}</option>
-                    {% else %}
-                      <option value="{{ size }}">{{ size }}</option>
-                    {% endif %}
+                <p style="margin-bottom: 8px; font-weight: 500;">Upper:</p>
+                <div class="size-group" data-group="combo-upper" data-default="{{ single_product.combo_size_config.default_upper|default_if_none:'' }}">
+                  {% for size in single_product.get_available_upper_sizes %}
+                    <button type="button" class="v1-size-btn" data-size="{{ size }}">{{ size }}</button>
                   {% endfor %}
-                </select>
+                  <input type="hidden" name="upper_size" id="combo_upper_size_input">
+                </div>
               </div>
 
               <!-- Lower Size Selector -->
               <div style="margin-bottom: 15px;">
-                <label for="lower-size" style="display: block; margin-bottom: 5px; font-weight: 500;">Lower Size:</label>
-                <select id="lower-size" name="lower_size" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                  <option value="">Select lower size</option>
-                  {% for size in single_product.category.get_lower_sizes %}
-                    {% if single_product.combo_size_config.default_lower == size %}
-                      <option value="{{ size }}" selected>{{ size }}</option>
-                    {% else %}
-                      <option value="{{ size }}">{{ size }}</option>
-                    {% endif %}
+                <p style="margin-bottom: 8px; font-weight: 500;">Lower:</p>
+                <div class="size-group" data-group="combo-lower" data-default="{{ single_product.combo_size_config.default_lower|default_if_none:'' }}">
+                  {% for size in single_product.get_available_lower_sizes %}
+                    <button type="button" class="v1-size-btn" data-size="{{ size }}">{{ size }}</button>
                   {% endfor %}
-                </select>
+                  <input type="hidden" name="lower_size" id="combo_lower_size_input">
+                </div>
               </div>
 
-              <!-- Shoe Size Selector (if available) -->
-              {% if single_product.category.has_shoe_sizes %}
+              <!-- Shoe Size Selector (only if product has shoe sizes selected) -->
+              {% if single_product.has_available_shoe_sizes %}
               <div style="margin-bottom: 15px;">
-                <label for="shoe-size" style="display: block; margin-bottom: 5px; font-weight: 500;">Shoe Size:</label>
-                <select id="shoe-size" name="shoe_size" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                  <option value="">Select shoe size</option>
-                  {% for size in single_product.category.get_shoe_sizes %}
-                    {% if single_product.combo_size_config.default_shoe == size %}
-                      <option value="{{ size }}" selected>{{ size }}</option>
-                    {% else %}
-                      <option value="{{ size }}">{{ size }}</option>
-                    {% endif %}
+                <p style="margin-bottom: 8px; font-weight: 500;">Shoes:</p>
+                <div class="size-group" data-group="combo-shoes" data-default="{{ single_product.combo_size_config.default_shoe|default_if_none:'' }}">
+                  {% for size in single_product.get_available_shoe_sizes %}
+                    <button type="button" class="v1-size-btn" data-size="{{ size }}">{{ size }}</button>
                   {% endfor %}
-                </select>
+                  <input type="hidden" name="shoe_size" id="combo_shoe_size_input">
+                </div>
               </div>
               {% endif %}
             </div>
             {% endif %}
 
             <div class="v1-choose-230">Choose your color:</div>
-            <div class="v1-swatches-231">
+            <div class="v1-swatches-231" style="display:flex;flex-wrap:wrap;gap:15px;margin-bottom:20px;">
               <input type="hidden" name="color" id="selected-color-input">
-              {% for i in single_product.variation_set.colors %}
-                <span class="v1-pill-232" data-color="{{ i.variation_value | lower }}">
-                  {{ i.variation_value | capfirst }}
-                </span>
-
+              {% for v in single_product.variation_set.colors %}
+                <div class="color-group" style="display:flex;flex-direction:column;gap:5px;">
+                  <div class="variation-thumb-container">
+                    {% for vi in v.images.all %}
+                      <img class="variation-thumb" 
+                           src="{{ vi.image.url }}" 
+                           alt="{{ vi.image_color }}"
+                           data-color="{{ vi.image_color }}"
+                           data-group-id="{{ v.id }}"
+                           style="width:64px;height:64px;">
+                    {% endfor %}
+                  </div>
+                </div>
               {% endfor %}
             </div>
 
@@ -338,10 +418,22 @@
               {% endif %}
             </div>
 
+            <!-- Quantity Selector (above buttons) -->
+            {% if single_product.stock > 0 %}
+            <div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px; display: flex; align-items: center; gap: 15px;">
+              <label style="font-weight: 600; margin: 0;">Quantity:</label>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <button type="button" id="qty-minus" class="btn btn-sm btn-outline-secondary" style="min-width:36px;padding:6px">−</button>
+                <input type="number" id="qty-input" name="quantity" value="1" min="1" max="{{ single_product.stock }}" style="width:50px;text-align:center;padding:6px;border:1px solid #ddd;border-radius:4px">
+                <button type="button" id="qty-plus" class="btn btn-sm btn-outline-secondary" style="min-width:36px;padding:6px">+</button>
+              </div>
+            </div>
+            {% endif %}
+
             <div class="v1-details-card-270">
               {% if single_product.stock <= 0 %}
-				        <h5 class="text-danger" >Out of Stock</h5>
-			        {% else %}
+						<h5 class="text-danger" >Out of Stock</h5>
+				{% else %}
               <!-- Add to cart -->
                 <button class="v1-btn-261 v1-btn-blue-262" type="submit">
                   <!-- Shopping cart icon -->
@@ -469,6 +561,7 @@
             min-height: 3em; /* reserve space for title (approx 2 lines) */
             display: -webkit-box;
             -webkit-line-clamp: 2;
+            line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             margin-bottom: 8px;
@@ -527,72 +620,149 @@
 
 
 
- const mainImg = document.getElementById("main-product-img");
-  const thumbs = document.querySelectorAll(".v1-thumb-131");
+  (function(){
+    const mainImg = document.getElementById("main-product-img");
+    const thumbsContainer = document.getElementById('thumbs-container');
+    const selectedColorInput = document.getElementById('selected-color-input');
+    const colorBtns = document.querySelectorAll('.v1-color-img');
+    const thumbUp = document.getElementById('thumb-up');
+    const thumbDown = document.getElementById('thumb-down');
 
-  // Thumbnail switching
-  thumbs.forEach(thumb => {
-    thumb.addEventListener("click", () => {
-      mainImg.src = thumb.src;
-      thumbs.forEach(t => t.classList.remove("active"));
-      thumb.classList.add("active");
-    });
-  });
+    let activeThumbSrc = mainImg.src;
 
-  // Zoom effect
-  mainImg.addEventListener("mousemove", function (e) {
-    const { left, top, width, height } = mainImg.getBoundingClientRect();
-    const x = ((e.pageX - left) / width) * 100;
-    const y = ((e.pageY - top) / height) * 100;
+    function bindThumbEvents(){
+      const thumbs = thumbsContainer.querySelectorAll('.v1-thumb-131');
+      thumbs.forEach(thumb => {
+        thumb.addEventListener('click', () => {
+          activeThumbSrc = thumb.dataset.src || thumb.src;
+          mainImg.src = activeThumbSrc;
+          thumbs.forEach(t => t.classList.remove('active'));
+          thumb.classList.add('active');
+        });
 
-    mainImg.style.transformOrigin = `${x}% ${y}%`;
-    mainImg.style.transform = "scale(2)"; // zoom level
-  });
+        thumb.addEventListener('mouseenter', () => {
+          mainImg.src = thumb.dataset.src || thumb.src;
+        });
 
-  mainImg.addEventListener("mouseleave", function () {
-    mainImg.style.transformOrigin = "center center";
-    mainImg.style.transform = "scale(1)";
-  });
+        thumb.addEventListener('mouseleave', () => {
+          mainImg.src = activeThumbSrc;
+        });
+      });
+    }
 
+    // initial bind
+    bindThumbEvents();
 
-  // Thumbnail switching (your code stays the same)
+    // scroll buttons
+    if(thumbUp){ thumbUp.addEventListener('click', () => { thumbsContainer.scrollBy({top:-120, behavior:'smooth'}) }); }
+    if(thumbDown){ thumbDown.addEventListener('click', () => { thumbsContainer.scrollBy({top:120, behavior:'smooth'}) }); }
 
-  // Swatch selection
-  const swatches = document.querySelectorAll(".v1-pill-232");
-  if (swatches.length > 0) {
-    // default: first one active
-    swatches[0].classList.add("active");
-
-    swatches.forEach(swatch => {
-      swatch.addEventListener("click", () => {
-        swatches.forEach(s => s.classList.remove("active"));
-        swatch.classList.add("active");
+    // variation image selection (all images shown directly)
+    const variationThumbs = document.querySelectorAll('.variation-thumb');
+    variationThumbs.forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        // remove active from all variation thumbs
+        variationThumbs.forEach(t => t.classList.remove('active'));
+        thumb.classList.add('active');
+        
+        // set color to selected image color
+        const selectedColor = thumb.dataset.color || '';
+        selectedColorInput.value = selectedColor.trim();
+        
+        // update main hero image
+        mainImg.src = thumb.src;
+      });
+      
+      thumb.addEventListener('mouseenter', () => {
+        // preview on hover
+        mainImg.src = thumb.src;
+      });
+      
+      thumb.addEventListener('mouseleave', () => {
+        // return to active selected image
+        const activeThumb = document.querySelector('.variation-thumb.active');
+        if(activeThumb) {
+          mainImg.src = activeThumb.src;
+        }
       });
     });
-  }
 
-  // Swatch selection
-const selectedColorInput = document.getElementById("selected-color-input");
+    // Ensure default: no color selected (do nothing)
 
-if (swatches.length > 0) {
-  swatches[0].classList.add("active");
-  selectedColorInput.value = swatches[0].textContent.trim().toLowerCase();  // Set default
+    // Size buttons behavior
+    const sizeGroups = document.querySelectorAll('.size-group');
+    sizeGroups.forEach(group => {
+      const buttons = group.querySelectorAll('.v1-size-btn');
+      const hidden = group.querySelector('input[type="hidden"]');
+      const defaultVal = group.dataset.default || '';
 
-  swatches.forEach(swatch => {
-    swatch.addEventListener("click", () => {
-      swatches.forEach(s => s.classList.remove("active"));
-      swatch.classList.add("active");
+      function selectButton(btn){
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if(hidden) hidden.value = btn.dataset.size || '';
+      }
 
-      selectedColorInput.value = swatch.textContent.trim().toLowerCase();
+      // pick default: defaultVal if present and matches, else first button
+      let picked = null;
+      if(defaultVal){
+        buttons.forEach(b => { if(b.dataset.size == defaultVal) picked = b; });
+      }
+      if(!picked && buttons.length > 0) picked = buttons[0];
+      if(picked) selectButton(picked);
+
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => selectButton(btn));
+      });
     });
-  });
-}
 
+    // Quantity buttons behavior
+    const qtyInput = document.getElementById('qty-input');
+    const qtyMinus = document.getElementById('qty-minus');
+    const qtyPlus = document.getElementById('qty-plus');
+    const maxStock = qtyInput ? parseInt(qtyInput.max, 10) || 1 : 1;
 
-  // Zoom effect (your code stays the same)
+    if (qtyMinus) {
+      qtyMinus.addEventListener('click', () => {
+        let current = parseInt(qtyInput.value, 10) || 1;
+        if (current > 1) {
+          qtyInput.value = current - 1;
+        }
+      });
+    }
 
+    if (qtyPlus) {
+      qtyPlus.addEventListener('click', () => {
+        let current = parseInt(qtyInput.value, 10) || 1;
+        if (current < maxStock) {
+          qtyInput.value = current + 1;
+        }
+      });
+    }
 
- //whatsapp button
+    if (qtyInput) {
+      qtyInput.addEventListener('change', () => {
+        let current = parseInt(qtyInput.value, 10) || 1;
+        if (current < 1) qtyInput.value = 1;
+        if (current > maxStock) qtyInput.value = maxStock;
+      });
+    }
+
+    // zoom on hero
+    mainImg.addEventListener('mousemove', function (e) {
+      const { left, top, width, height } = mainImg.getBoundingClientRect();
+      const x = ((e.pageX - left) / width) * 100;
+      const y = ((e.pageY - top) / height) * 100;
+      mainImg.style.transformOrigin = `${x}% ${y}%`;
+      mainImg.style.transform = 'scale(2)';
+    });
+
+    mainImg.addEventListener('mouseleave', function () {
+      mainImg.style.transformOrigin = 'center center';
+      mainImg.style.transform = 'scale(1)';
+    });
+  })();
+
+  //whatsapp button
   function chatMe() {
     const phone = "9779848421050";
     const text = "Hello";
@@ -602,7 +772,7 @@ if (swatches.length > 0) {
     } else {
         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank");
     }
-  } 
+  }
 
 </script>
 

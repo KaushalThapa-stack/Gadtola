@@ -45,19 +45,55 @@ def _cart_id(request):
 def add_cart(request,product_id):
     current_user = request.user
     product = Product.objects.get(id=product_id)
+    
+    # Extract quantity from POST (default to 1)
+    try:
+        quantity = int(request.POST.get('quantity', 1))
+        if quantity < 1:
+            quantity = 1
+        if quantity > product.stock:
+            quantity = product.stock
+    except:
+        quantity = 1
+    
+    # Extract sizes from POST
+    sizes = {}
+    for size_key in ['upper_size', 'lower_size', 'shoe_size']:
+        if size_key in request.POST:
+            val = request.POST.get(size_key, '').strip()
+            if val:
+                sizes[size_key] = val
+    
     #if user is authenticated
     if current_user.is_authenticated:
         product_variation = []
         if request.method == 'POST':
+            # Handle color selection via image_color
+            selected_color = request.POST.get('color', '').strip()
+            if selected_color:
+                try:
+                    from store.models import VariationImage
+                    var_img = VariationImage.objects.get(
+                        variation__product=product,
+                        variation__variation_category='color',
+                        image_color__iexact=selected_color
+                    )
+                    product_variation.append(var_img.variation)
+                except:
+                    pass
+            
+            # Legacy: handle other variation types from POST
             for items in request.POST:
                 key = items
                 value = request.POST[key]
+                
+                if key.lower() == 'color' or key in ['upper_size', 'lower_size', 'shoe_size', 'csrfmiddlewaretoken', 'quantity']:
+                    continue
 
                 try:
                     variation = Variation.objects.get(
                         product=product,
-                        variation_category__iexact=key,
-                        variation_value__iexact=value
+                        variation_category__iexact=key
                     )
                     product_variation.append(variation)
                 except:
@@ -81,27 +117,30 @@ def add_cart(request,product_id):
                     index = ex_var_list.index(product_variation)
                     item_id = id[index]
                     item=CartItem.objects.get(product=product,id=item_id)
-                    if item.quantity < product.stock:
-                        item.quantity += 1
+                    if item.quantity + quantity <= product.stock:
+                        item.quantity += quantity
+                        item.sizes = sizes
                         item.save()
                     else:
                         messages.warning(request, f"Cannot add more than available stock ({product.stock}).")
                 else:
-                    item = CartItem.objects.create(product=product,quantity=1,user=current_user)
+                    item = CartItem.objects.create(product=product,quantity=quantity,user=current_user)
                     if len(product_variation) > 0:
                         item.variations.clear()
                         item.variations.add(*product_variation)
+                    item.sizes = sizes
                     item.save()
 
             else:
                 cart_item = CartItem.objects.create(
                     product=product,
-                    quantity=1,
+                    quantity=quantity,
                     user=current_user
                 )
                 if len(product_variation) > 0:
                     cart_item.variations.clear()
                     cart_item.variations.add(*product_variation)
+                cart_item.sizes = sizes
                 cart_item.save()
             return redirect('carts:cart')
 
@@ -113,13 +152,30 @@ def add_cart(request,product_id):
 
             product_variation = []
             if request.method == 'POST':
+                # Handle color selection via image_color
+                selected_color = request.POST.get('color', '').strip()
+                if selected_color:
+                    try:
+                        from store.models import VariationImage
+                        var_img = VariationImage.objects.get(
+                            variation__product=product,
+                            variation__variation_category='color',
+                            image_color__iexact=selected_color
+                        )
+                        product_variation.append(var_img.variation)
+                    except:
+                        pass
+                
+                # Legacy: handle other variation types
                 for items in request.POST:
                     key = items
                     value = request.POST[key]
                     
+                    if key.lower() == 'color' or key in ['upper_size', 'lower_size', 'shoe_size', 'csrfmiddlewaretoken', 'quantity']:
+                        continue
 
                     try:
-                        variation = Variation.objects.get(product=product,variation_category__iexact=key,variation_value__iexact=value)
+                        variation = Variation.objects.get(product=product,variation_category__iexact=key)
                         product_variation.append(variation)
                     except:
                         pass 
@@ -150,27 +206,30 @@ def add_cart(request,product_id):
                     index = ex_var_list.index(product_variation)
                     item_id = id[index]
                     item=CartItem.objects.get(product=product,id=item_id)
-                    if item.quantity < product.stock:
-                        item.quantity += 1
+                    if item.quantity + quantity <= product.stock:
+                        item.quantity += quantity
+                        item.sizes = sizes
                         item.save()
                     else:
                         messages.warning(request, f"Cannot add more than available stock ({product.stock}).")
                 else:
-                    item = CartItem.objects.create(product=product,quantity=1,cart=cart)
+                    item = CartItem.objects.create(product=product,quantity=quantity,cart=cart)
                     if len(product_variation) > 0:
                         item.variations.clear()
                         item.variations.add(*product_variation)
+                    item.sizes = sizes
                     item.save()
 
             else:
                 cart_item = CartItem.objects.create(
                     product=product,
-                    quantity=1,
+                    quantity=quantity,
                     cart=cart
                 )
                 if len(product_variation) > 0:
                     cart_item.variations.clear()
                     cart_item.variations.add(*product_variation)
+                cart_item.sizes = sizes
                 cart_item.save()
             return redirect('carts:cart')
 

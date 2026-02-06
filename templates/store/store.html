@@ -5,8 +5,6 @@
 
 {% block content %}
 
-
-
 <!-- ========================= SECTION PAGETOP ========================= -->
 <section class="section-pagetop bg">
 <div class="container">
@@ -15,295 +13,492 @@
 	{% else %}
 	<h2 class="title-page">Our Store</h2>
 	{% endif %}
-	
-</div> <!-- container //  -->
+</div>
 </section>
 <!-- ========================= SECTION INTRO END// ========================= -->
-
-
 
 <!-- ========================= SECTION CONTENT ========================= -->
 <section class="section-content padding-y">
 <div class="container">
 
-<div class="row">
-    <!-- Categories Sidebar - Left Side -->
-    <aside id="categoriesAside" class="col-lg-3 col-md-4 col-sm-12 mb-4 pl-lg-0 pl-md-0 categories-aside">
-        <div class="card">
-            <div class="mobile-categories-header d-md-none" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;">
-                <strong>Categories</strong>
-                <button type="button" class="btn btn-light" id="closeCategories"><i class="fas fa-times"></i></button>
-            </div>
-            <article class="filter-group">
-                <header class="card-header">
-                    <a href="#" data-toggle="collapse" data-target="#collapse_1" aria-expanded="true" class="">
-                        <i class="icon-control fa fa-chevron-down"></i>
-                        <h6 class="title">Categories</h6>
-                    </a>
-                </header>
-                <div class="filter-content collapse show" id="collapse_1">
-                    <div class="card-body">
-						<div class="sidebar-cats" style="max-height:420px;overflow-y:auto;padding-right:6px;">
-						  <ul class="list-menu mb-0">
-							  <li><a href="{% url 'store' %}">All Products</a></li>
-							  
-							  <!-- Show child categories if parent is selected -->
-							  {% if parent_category and child_categories %}
-							  <li><strong>{{ parent_category.name }}</strong>
-							  	<ul style="margin-left: 15px;">
-							  		<li><a href="{% url 'products_by_parent_category' parent_category.slug %}">All {{ parent_category.name }}</a></li>
-							  		{% for child in child_categories %}
-							  		<li>
-							  			<a href="{% url 'products_by_child_category' parent_category.slug child.slug %}">{{ child.name }}</a>
-							  		</li>
-							  		{% endfor %}
-							  	</ul>
-							  </li>
-							  {% else %}
-							  <!-- Show legacy categories for backward compatibility -->
-							  {% for category in links %}
-							  <li><a href="{{ category.get_url }}">{{ category.category_name }}</a></li>
-							  {% endfor %}
-							  {% endif %}
-						  </ul>
-						</div>
-                    </div> <!-- card-body.// -->
-                </div>
-            </article> <!-- filter-group  .// -->
-        </div> <!-- card.// -->
-    </aside> <!-- col.// -->
-    
-    <!-- Products Section - Right Side -->
-    <main class="col-lg-9 col-md-8 col-sm-12">
-        <div class="mobile-categories-toggle">
-            <button type="button" class="btn btn-outline-secondary" id="openCategories">Categories</button>
-        </div>
-        <header class="border-bottom mb-4 pb-3">
-            <div class="form-inline">
-                <span class="mr-md-auto"><b>{{ product_count }}</b> items found</span>
-            </div>
-        </header><!-- sect-heading -->
+	<!-- Filters Bar -->
+	<div class="filters-bar mb-5">
+		<div class="row align-items-center">
+			<div class="col-lg-6">
+				<span class="filter-label"><b>{{ product_count }}</b> items found</span>
+			</div>
+			<div class="col-lg-6">
+				<div class="filters-controls d-flex gap-3 flex-wrap justify-content-lg-end">
+					<!-- Brand Filter Dropdown -->
+					{% if brands %}
+					<div class="filter-dropdown">
+						<select id="brandFilter" class="form-control" style="max-width: 250px;">
+							<option value="">All Brands</option>
+							{% for brand in brands %}
+								<option value="{{ brand.id }}" {% if selected_brand.id == brand.id %}selected{% endif %}>
+									{{ brand.name }}
+								</option>
+							{% endfor %}
+						</select>
+					</div>
+					{% endif %}
+					
+					<!-- Child Category Filter Dropdown -->
+					{% if child_categories %}
+					<div class="filter-dropdown">
+						<select id="categoryFilter" class="form-control" style="max-width: 250px;">
+							<option value="">All Products</option>
+							{% for child in child_categories %}
+								<option value="{{ child.slug }}" {% if child_category.slug == child.slug %}selected{% endif %}>
+									{{ child.name }}
+								</option>
+							{% endfor %}
+						</select>
+					</div>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+	</div>
 
-		{% if products %}
+	<!-- Products Grid -->
+	{% if products %}
+	<div class="products-container">
 		<div class="row">
 			{% for product in products %}
-			<div class="col-xl-4 col-lg-6 col-md-12 col-sm-6 mb-4">
-				<div class="card">
-			<div class="badge">HOT SALE</div>
-			<div class="tilt">
-			<div class="img">
-				<a href="{{ product.get_url }}" class="img-wrap">
-				<img src="{{ product.image1.url }}">
-				</a>
-			</div>
-			</div>
-			<div class="info">
-			<h2 class="title"><a href="{{ product.get_url }}" class="title">{{ product.product_name|slice:":15"}}…</a></h2>
-			<p class="desc">{{ product.product_name|slice:":30"}}…</p>
-			<div class="feats">
-				{% if product.feature1 %}
-				<span class="feat">{{ product.feature1 }}</span>
-				{% endif %}
-				{% if product.feature2 %}
-				<span class="feat">{{ product.feature2 }}</span>
-				{% endif %}
-				{% if product.feature3 %}
-				<span class="feat">{{ product.feature3 }}</span>
-				{% endif %}
-			</div>
-			<div class="bottom">
-				<div class="price">
-				{% if product.old_price %}
-				<span class="old">Rs. {{ product.old_price }}</span>
-				{% endif %}
-				<span class="new">Rs. {{ product.price }}</span>
+			<div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 mb-4 d-flex">
+				<div class="card w-100">
+					<div class="badge">HOT SALE</div>
+					<div class="tilt">
+						<div class="img">
+							<a href="{{ product.get_url }}" class="img-wrap">
+								<img src="{{ product.image1.url }}">
+							</a>
+						</div>
+					</div>
+					<div class="info">
+						<h2 class="title"><a href="{{ product.get_url }}" class="title">{{ product.product_name|slice:":15"}}…</a></h2>
+						<p class="desc">{{ product.product_name|slice:":30"}}…</p>
+						<div class="feats">
+							{% if product.feature1 %}
+							<span class="feat">{{ product.feature1 }}</span>
+							{% endif %}
+							{% if product.feature2 %}
+							<span class="feat">{{ product.feature2 }}</span>
+							{% endif %}
+							{% if product.feature3 %}
+							<span class="feat">{{ product.feature3 }}</span>
+							{% endif %}
+						</div>
+						<div class="bottom">
+							<div class="price">
+								{% if product.old_price %}
+								<span class="old">Rs. {{ product.old_price }}</span>
+								{% endif %}
+								<span class="new">Rs. {{ product.price }}</span>
+							</div>
+							<a href="{{ product.get_url }}" class="btnn">
+								<span>View Product</span>
+								<svg class="icon" width="20" height="20" viewBox="0 -960 960 960" fill="#e3e3e3" xmlns="http://www.w3.org/2000/svg">
+									<path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-146 0-266-81.5T40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200Zm0-300Zm0 220q113 0 207.5-59.5T832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280Z"/>
+								</svg>
+							</a>
+						</div>
+						<div class="stock">
+							{% if product.stock <= 0 %}
+							<p class="text-danger">Out of Stock</p>
+							{% else %}
+							<p>In Stock</p>
+							{% endif %}
+						</div>
+					</div>
+					<div class="text-center">
+						<div class="rating-star mb-3">
+							<i class="fa fa-star{% if product.averageReview < 0.5%}-o {% elif product.averageReview >= 0.5 and product.averageReview < 1 %}-half-o {% endif %}" aria-hidden="true"></i>
+							<i class="fa fa-star{% if product.averageReview < 1.5%}-o {% elif product.averageReview >= 1.5 and product.averageReview < 2 %}-half-o {% endif %}" aria-hidden="true"></i>
+							<i class="fa fa-star{% if product.averageReview < 2.5%}-o {% elif product.averageReview >= 2.5 and product.averageReview < 3 %}-half-o {% endif %}" aria-hidden="true"></i>
+							<i class="fa fa-star{% if product.averageReview < 3.5%}-o {% elif product.averageReview >= 3.5 and product.averageReview < 4 %}-half-o {% endif %}" aria-hidden="true"></i>
+							<i class="fa fa-star{% if product.averageReview < 4.5%}-o {% elif product.averageReview >= 4.5 and product.averageReview < 5 %}-half-o {% endif %}" aria-hidden="true"></i>
+						</div>
+					</div>
 				</div>
-				<a href="{{ product.get_url }}" class="btnn">
-				<span>View Product</span>
-				<svg class="icon" width="20" height="20" viewBox="0 -960 960 960" fill="#e3e3e3" xmlns="http://www.w3.org/2000/svg">
-					<path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-146 0-266-81.5T40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200Zm0-300Zm0 220q113 0 207.5-59.5T832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280Z"/>
-				</svg>
-				</a>
 			</div>
-			<div class="stock">
-				{% if product.stock <= 0 %}
-				<p class="text-danger">Out of Stock</p>
-				{% else %}
-				<p>In Stock</p>
-				{% endif %}
-			</div>
-			</div>
-			<div class="text-center" >
-			<div class="rating-star mb-3">
-					<!-- 1 star -->
-					<i class="fa fa-star{% if product.averageReview < 0.5%}-o {% elif product.averageReview >= 0.5 and product.averageReview < 1 %}-half-o {% endif %}" aria-hidden="true"></i>
-					<!-- 2 star -->
-					<i class="fa fa-star{% if product.averageReview < 1.5%}-o {% elif product.averageReview >= 1.5 and product.averageReview < 2 %}-half-o {% endif %}" aria-hidden="true"></i>
-					<!-- 3 star -->
-					<i class="fa fa-star{% if product.averageReview < 2.5%}-o {% elif product.averageReview >= 2.5 and product.averageReview < 3 %}-half-o {% endif %}" aria-hidden="true"></i>
-					<!-- 4 star -->
-					<i class="fa fa-star{% if product.averageReview < 3.5%}-o {% elif product.averageReview >= 3.5 and product.averageReview < 4 %}-half-o {% endif %}" aria-hidden="true"></i>
-					<!-- 5 star -->
-					<i class="fa fa-star{% if product.averageReview < 4.5%}-o {% elif product.averageReview >= 4.5 and product.averageReview < 5 %}-half-o {% endif %}" aria-hidden="true"></i>
-			</div>
-
-			</div>
-				</div> <!-- card.// -->
-			</div> <!-- col.// -->
 			{% endfor %}
-		</div> <!-- row.// -->
+		</div>
+	</div>
 	{% else %}
 	<div class="col-md-12">
 		<h2>No products found</h2>
 	</div>
 	{% endif %}
-</div> <!-- row end.// -->
 
-
-<nav class="mt-4 justify-content-center" aria-label="Page navigation sample">
-	{% if products.has_other_pages %}
-	<ul class="pagination ">
-		{% if products.has_previous%}
-		<li class="page-item "><a class="page-link" href="?page={{ products.previous_page_number }}">Previous</a></li>
-		{% else %}
-		<li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-		{% endif %}
-		
-		{% for i in products.paginator.page_range %}
-			{% if products.number == i %}
-				<li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+	<!-- Pagination -->
+	<nav class="mt-4 justify-content-center" aria-label="Page navigation sample">
+		{% if products.has_other_pages %}
+		<ul class="pagination">
+			{% if products.has_previous%}
+			<li class="page-item"><a class="page-link" href="?page={{ products.previous_page_number }}{% if selected_brand %}&brand={{ selected_brand.id }}{% endif %}{% if child_category %}&child_category={{ child_category.slug }}{% endif %}">Previous</a></li>
 			{% else %}
-				<li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+			<li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
 			{% endif %}
-		{% endfor %}
-		
-		{% if products.has_next %}
-		<li class="page-item"><a class="page-link" href="?page={{ products.next_page_number }}">Next</a></li>
-		{% else %}
-		<li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
+			
+			{% for i in products.paginator.page_range %}
+				{% if products.number == i %}
+					<li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+				{% else %}
+					<li class="page-item"><a class="page-link" href="?page={{ i }}{% if selected_brand %}&brand={{ selected_brand.id }}{% endif %}{% if child_category %}&child_category={{ child_category.slug }}{% endif %}">{{ i }}</a></li>
+				{% endif %}
+			{% endfor %}
+			
+			{% if products.has_next %}
+			<li class="page-item"><a class="page-link" href="?page={{ products.next_page_number }}{% if selected_brand %}&brand={{ selected_brand.id }}{% endif %}{% if child_category %}&child_category={{ child_category.slug }}{% endif %}">Next</a></li>
+			{% else %}
+			<li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
+			{% endif %}
+		</ul>
 		{% endif %}
-	</ul>
-	{% endif %}
-</nav>
-
-	</main> <!-- col.// -->
+	</nav>
 
 </div>
-
-</div> <!-- container .//  -->
 </section>
 <!-- ========================= SECTION CONTENT END// ========================= -->
 
-<script>
-  (function(){
-    var aside = document.getElementById('categoriesAside');
-    var openBtn = document.getElementById('openCategories');
-    var closeBtn = document.getElementById('closeCategories');
-    var backdrop = document.getElementById('categoriesBackdrop');
-    var collapse = document.getElementById('collapse_1');
-    function openAside(){
-      aside.classList.add('open');
-      if (collapse && !collapse.classList.contains('show')) { collapse.classList.add('show'); }
-      if (backdrop) { backdrop.classList.add('show'); }
-      document.body.classList.add('modal-open');
-    }
-    function closeAside(){
-      aside.classList.remove('open');
-      if (backdrop) { backdrop.classList.remove('show'); }
-      document.body.classList.remove('modal-open');
-    }
-    if(openBtn && aside){ openBtn.addEventListener('click', openAside); }
-    if(closeBtn){ closeBtn.addEventListener('click', closeAside); }
-    if(backdrop){ backdrop.addEventListener('click', closeAside); }
-    document.addEventListener('click', function(e){ if(aside && aside.classList.contains('open')){ var within = aside.contains(e.target) || (openBtn && openBtn.contains(e.target)); if(!within){ closeAside(); } } });
-  })();
-</script>
 <style>
+	.filters-bar {
+		padding: 20px 0;
+		border-bottom: 1px solid #f0f0f0;
+	}
 
-/* Categories sidebar styles */
-.categories-aside { margin-left: -20px; }
- @media (max-width: 768px) { .categories-aside { margin-left: 0; } }
-.list-menu { list-style: none; padding: 0; margin: 0; }
-.list-menu li a { display: block; padding: 10px 12px; border-radius: 8px; text-decoration: none !important; color: #000000; background: transparent; font-weight: 600; transition: color .2s; }
-.list-menu li a:hover { color: #007bff; background: transparent; }
-.list-menu li a.active { color: #007bff; background: transparent; }
+	.filter-label {
+		font-size: 14px;
+		color: #666;
+	}
 
-.card {
-  width: 100%; /* let Bootstrap column control width */
-  background: black;
-  border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0,0,0,.1);
-  transition: .3s;
-  font-family: 'Segoe UI', sans-serif;
-  overflow: visible;
-  position: relative;
-  cursor: pointer;
-  min-height: 100%; /* ensure cards have equal height in grid */
-  display: flex;
-  flex-direction: column;
-}
+	.filters-controls {
+		display: flex;
+		gap: 15px;
+	}
 
-.card:hover{transform:translateY(-5px);box-shadow:0 10px 25px rgba(0,0,0,.15)}
-.badge{position:absolute;top:10px;right:10px;background: linear-gradient(to right,  rgba(169,3,41,1) 0%,rgba(196,72,72,1) 44%,rgba(170,34,56,1) 100%);color:#fff;padding:5px 10px;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,.2);z-index:10}
-.tilt{overflow:hidden}
-.img{height:200px;overflow:hidden}
-.img img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
-.card:hover .img img{transform:scale(1.05)}
-.info{padding:20px; background-color: transparent;}
-.cat{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#71717A;margin-bottom:5px}
-.title{font-size:18px;font-weight:700;color:#18181B;margin:0 0 10px;letter-spacing:-.5px}
-.title a{text-decoration:none;color:#18181B}
-.desc{font-size:13px;color:#52525B;line-height:1.4;margin-bottom:12px}
-.feats{display:flex;gap:6px;margin-bottom:15px}
-.feat{font-size:10px;background:#F4F4F5;color:#71717A;padding:3px 8px;border-radius:10px;font-weight:500}
-.bottom{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.price{display:flex;flex-direction:column}
-.old{font-size:13px;text-decoration:line-through;color:#A1A1AA;margin-bottom:2px}
-.new{font-size:20px;font-weight:700;color:#18181B}
-.btnn{background:linear-gradient(45deg,#18181B,#27272A);color:#fff;border:none;border-radius:10px;padding:8px 15px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.3s;box-shadow:0 3px 10px rgba(0,0,0,.1);text-decoration:none}
-.btnn:hover{background:linear-gradient(45deg,#27272A,#3F3F46);transform:translateY(-2px);box-shadow:0 5px 15px rgba(0,0,0,.15);color:#fff;text-decoration:none}
-.btnn:before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);transition:.5s}
-.btnn:hover:before{left:100%}
-.icon{transition:transform .3s}
-.btnn:hover .icon{transform:rotate(-10deg) scale(1.1)}
-.meta{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #F4F4F5;padding-top:12px}
-.rcount{margin-left:6px;font-size:11px;color:#71717A}
-.stock{font-size:11px;font-weight:600;color:#22C55E}
-@media (max-width:400px){.card{width:90%}.title{font-size:16px}.img{height:180px}.bottom{flex-direction:column;align-items:flex-start;gap:10px}.price{margin-bottom:5px}.btn{width:100%;justify-content:center}}
+	.filter-dropdown select {
+		padding: 10px 15px;
+		border: 1px solid #ddd;
+		border-radius: 8px;
+		background-color: #fff;
+		font-size: 13px;
+		cursor: pointer;
+		transition: border-color 0.3s;
+	}
 
+	.filter-dropdown select:hover {
+		border-color: #999;
+	}
 
+	.filter-dropdown select:focus {
+		outline: none;
+		border-color: #007bff;
+		box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+	}
 
-.mobile-categories-toggle { display: none; }
-@media (max-width: 768px) {
-  .mobile-categories-toggle { display:block; margin-bottom: 12px; }
-  /* Remove aside from flex layout so it doesn't push cards */
-  #categoriesAside { 
-    position: fixed; top: 0; left: 0; right: 0;
-    width: 100%; max-width: none; height: 100%; 
-    z-index: 1050; background: #fff; 
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2); 
-    transform: translateX(-100%); transition: transform 0.3s ease; 
-    overflow-y: auto; 
-    flex: 0 0 0 !important; 
-    max-width: 0 !important; 
-    margin: 0 !important; right: auto; 
-  }
-  #categoriesAside.open { transform: translateX(0); max-width: none !important; flex: 0 0 auto !important; }
-}
-.categories-aside .card{ height: 100%; }
-.categories-backdrop{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);z-index:1040}
-.categories-backdrop.show{display:block}
-body.modal-open{overflow:hidden}
-/* Sidebar categories scrollbar - only visible on overflow */
-.sidebar-cats::-webkit-scrollbar { width: 8px; }
-.sidebar-cats::-webkit-scrollbar-track { background: transparent; }
-.sidebar-cats::-webkit-scrollbar-thumb { background: #999; border-radius: 4px; }
-.sidebar-cats::-webkit-scrollbar-thumb:hover { background: #666; }
-.sidebar-cats { scrollbar-width: thin; scrollbar-color: #999 transparent; }
+	.products-container {
+		padding: 20px 0;
+	}
+
+	.products-container .row {
+		margin: 0 -15px;
+	}
+
+	.products-container .col-xl-3 {
+		padding: 0 15px;
+	}
+
+	.card {
+		width: 100%;
+		background: black;
+		border-radius: 15px;
+		box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+		transition: 0.3s;
+		font-family: 'Segoe UI', sans-serif;
+		overflow: visible;
+		position: relative;
+		cursor: pointer;
+		min-height: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.card:hover {
+		transform: translateY(-5px);
+		box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+	}
+
+	.badge {
+		position: absolute;
+		top: 10px;
+		right: 10px;
+		background: linear-gradient(to right, rgba(169, 3, 41, 1) 0%, rgba(196, 72, 72, 1) 44%, rgba(170, 34, 56, 1) 100%);
+		color: #fff;
+		padding: 5px 10px;
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+		border-radius: 10px;
+		box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+		z-index: 10;
+	}
+
+	.tilt {
+		overflow: hidden;
+	}
+
+	.img {
+		height: 200px;
+		overflow: hidden;
+	}
+
+	.img img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.5s;
+	}
+
+	.card:hover .img img {
+		transform: scale(1.05);
+	}
+
+	.info {
+		padding: 20px;
+		background-color: transparent;
+		flex-grow: 1;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.cat {
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+		color: #71717A;
+		margin-bottom: 5px;
+	}
+
+	.title {
+		font-size: 18px;
+		font-weight: 700;
+		color: #18181B;
+		margin: 0 0 10px;
+		letter-spacing: -0.5px;
+		flex-grow: 1;
+	}
+
+	.title a {
+		text-decoration: none;
+		color: #18181B;
+	}
+
+	.desc {
+		font-size: 13px;
+		color: #52525B;
+		line-height: 1.4;
+		margin-bottom: 12px;
+	}
+
+	.feats {
+		display: flex;
+		gap: 6px;
+		margin-bottom: 15px;
+	}
+
+	.feat {
+		font-size: 10px;
+		background: #F4F4F5;
+		color: #71717A;
+		padding: 3px 8px;
+		border-radius: 10px;
+		font-weight: 500;
+	}
+
+	.bottom {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 12px;
+	}
+
+	.price {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.old {
+		font-size: 13px;
+		text-decoration: line-through;
+		color: #A1A1AA;
+		margin-bottom: 2px;
+	}
+
+	.new {
+		font-size: 20px;
+		font-weight: 700;
+		color: #18181B;
+	}
+
+	.btnn {
+		background: linear-gradient(45deg, #18181B, #27272A);
+		color: #fff;
+		border: none;
+		border-radius: 10px;
+		padding: 8px 15px;
+		font-size: 13px;
+		font-weight: 600;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		transition: 0.3s;
+		box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+		text-decoration: none;
+	}
+
+	.btnn:hover {
+		background: linear-gradient(45deg, #27272A, #3F3F46);
+		transform: translateY(-2px);
+		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+		color: #fff;
+		text-decoration: none;
+	}
+
+	.icon {
+		transition: transform 0.3s;
+	}
+
+	.btnn:hover .icon {
+		transform: rotate(-10deg) scale(1.1);
+	}
+
+	.stock {
+		font-size: 11px;
+		font-weight: 600;
+		color: #22C55E;
+	}
+
+	/* Responsive Design */
+	@media (max-width: 1199px) {
+		.col-xl-3 {
+			flex: 0 0 25%;
+			max-width: 25%;
+		}
+	}
+
+	@media (max-width: 991px) {
+		.filters-controls {
+			justify-content: flex-start !important;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.col-xl-3 {
+			flex: 0 0 50%;
+			max-width: 50%;
+		}
+
+		.filters-controls {
+			gap: 10px;
+			width: 100%;
+		}
+
+		.filter-dropdown select {
+			width: 100%;
+			max-width: none;
+		}
+	}
+
+	@media (max-width: 576px) {
+		.col-xl-3 {
+			flex: 0 0 50%;
+			max-width: 50%;
+		}
+
+		.img {
+			height: 150px;
+		}
+
+		.title {
+			font-size: 16px;
+		}
+	}
+
+	@media (max-width: 400px) {
+		.col-xl-3 {
+			flex: 0 0 100%;
+			max-width: 100%;
+		}
+
+		.card {
+			width: 90%;
+			margin: 0 auto;
+		}
+
+		.img {
+			height: 180px;
+		}
+
+		.bottom {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 10px;
+		}
+
+		.price {
+			margin-bottom: 5px;
+		}
+
+		.filters-controls {
+			flex-direction: column;
+		}
+	}
 </style>
-<div id="categoriesBackdrop" class="categories-backdrop"></div>
 
+<script>
+	document.addEventListener('DOMContentLoaded', function() {
+		const brandFilter = document.getElementById('brandFilter');
+		const categoryFilter = document.getElementById('categoryFilter');
+		const parent_slug = "{{ parent_slug }}";
 
+		if (brandFilter) {
+			brandFilter.addEventListener('change', function() {
+				const brand_id = this.value;
+				// Reset category filter when brand is selected
+				if (categoryFilter) {
+					categoryFilter.value = '';
+				}
+				// Build query string
+				let url = window.location.pathname;
+				if (brand_id) {
+					url += '?brand=' + brand_id;
+				}
+				window.location.href = url;
+			});
+		}
+
+		if (categoryFilter) {
+			categoryFilter.addEventListener('change', function() {
+				const child_slug = this.value;
+				// Reset brand filter when category is selected
+				if (brandFilter) {
+					brandFilter.value = '';
+				}
+				// Build query string
+				let url = window.location.pathname;
+				if (child_slug) {
+					url += '?child_category=' + child_slug;
+				}
+				window.location.href = url;
+			});
+		}
+	});
+</script>
 
 {% endblock %}
-

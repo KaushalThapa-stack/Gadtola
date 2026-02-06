@@ -33,9 +33,19 @@ class ChildCategoryAdminForm(forms.ModelForm):
         
         # Add help text
         self.fields['size_config'].help_text = '''
-Enter size configuration as JSON.
-- For Outfit/Shoes: {"sizes": ["S", "M", "L", "XL", "2XL", "3XL"]}
-- For Combos: {"upper_sizes": ["S", "M", "L", "XL"], "lower_sizes": ["28", "30", "32", "34"], "shoe_sizes": ["39", "40", "41", "42"]}
+Enter size configuration as JSON based on parent category:
+
+Upper: {"sizes": ["S", "M", "L", "XL", "2XL", "3XL"]}
+
+Lower: {"lower_sizes": ["28", "29", "30", "31", "32", "34", "36"]}
+
+Shoes: {"shoe_sizes": ["39", "40", "41", "42", "43"]}
+
+Combos (REQUIRED): {
+  "upper_sizes": ["S", "M", "L", "XL", "2XL", "3XL"],
+  "lower_sizes": ["28", "29", "30", "31", "32", "34", "36"],
+  "shoe_sizes": ["39", "40", "41", "42", "43"]
+}
         '''
         
         # Convert dict to JSON string for display
@@ -53,17 +63,55 @@ Enter size configuration as JSON.
                 parent = cleaned_data.get('parent')
                 
                 if parent:
-                    if parent.key in ['outfit', 'shoes']:
-                        # Check that 'sizes' key exists
+                    parent_key = parent.key
+                    
+                    if parent_key == 'upper':
+                        # Upper MUST have 'sizes'
                         if 'sizes' not in config:
                             raise forms.ValidationError(
-                                'For Outfit/Shoes categories, size_config must have "sizes" key'
+                                'For Upper categories, size_config MUST contain "sizes" key'
                             )
-                    elif parent.key == 'combos':
-                        # Check that at least upper_sizes and lower_sizes exist
+                        # Reject other keys
+                        if any(key not in ['sizes'] for key in config.keys()):
+                            raise forms.ValidationError(
+                                'For Upper categories, only "sizes" key is allowed'
+                            )
+                    
+                    elif parent_key == 'lower':
+                        # Lower MUST have 'lower_sizes'
+                        if 'lower_sizes' not in config:
+                            raise forms.ValidationError(
+                                'For Lower categories, size_config MUST contain "lower_sizes" key'
+                            )
+                        # Reject other keys
+                        if any(key not in ['lower_sizes'] for key in config.keys()):
+                            raise forms.ValidationError(
+                                'For Lower categories, only "lower_sizes" key is allowed'
+                            )
+                    
+                    elif parent_key == 'shoes':
+                        # Shoes MUST have 'shoe_sizes'
+                        if 'shoe_sizes' not in config:
+                            raise forms.ValidationError(
+                                'For Shoes categories, size_config MUST contain "shoe_sizes" key'
+                            )
+                        # Reject other keys
+                        if any(key not in ['shoe_sizes'] for key in config.keys()):
+                            raise forms.ValidationError(
+                                'For Shoes categories, only "shoe_sizes" key is allowed'
+                            )
+                    
+                    elif parent_key == 'combos':
+                        # Combos MUST have 'upper_sizes' and 'lower_sizes'
                         if 'upper_sizes' not in config or 'lower_sizes' not in config:
                             raise forms.ValidationError(
-                                'For Combos categories, size_config must have "upper_sizes" and "lower_sizes"'
+                                'For Combos categories, size_config MUST contain "upper_sizes" and "lower_sizes"'
+                            )
+                        # shoe_sizes is optional, but no other keys allowed
+                        allowed_keys = {'upper_sizes', 'lower_sizes', 'shoe_sizes'}
+                        if not set(config.keys()).issubset(allowed_keys):
+                            raise forms.ValidationError(
+                                'For Combos categories, only "upper_sizes", "lower_sizes", and optional "shoe_sizes" are allowed'
                             )
             except json.JSONDecodeError:
                 raise forms.ValidationError('Invalid JSON in size_config')

@@ -23,7 +23,8 @@ class Category(models.Model):
 
 # Fixed parent categories - system-defined
 PARENT_CATEGORY_CHOICES = (
-    ('outfit', 'Outfit'),
+    ('upper', 'Upper'),
+    ('lower', 'Lower'),
     ('shoes', 'Shoes'),
     ('combos', 'Combos'),
 )
@@ -70,29 +71,41 @@ class ChildCategory(models.Model):
         return f"{self.name} ({self.parent.name})"
 
     def get_sizes(self):
-        """Get sizes based on parent category type"""
-        if self.parent.key in ['outfit', 'shoes']:
+        """Get sizes for Upper category"""
+        if self.parent.key == 'upper':
             return self.size_config.get('sizes', [])
         return []
 
-    def get_upper_sizes(self):
-        """For combos: get upper sizes"""
-        if self.parent.key == 'combos':
-            return self.size_config.get('upper_sizes', [])
-        return []
-
     def get_lower_sizes(self):
-        """For combos: get lower sizes"""
-        if self.parent.key == 'combos':
+        """Get lower sizes for Lower category"""
+        if self.parent.key == 'lower':
             return self.size_config.get('lower_sizes', [])
         return []
 
     def get_shoe_sizes(self):
-        """For combos: get shoe sizes (optional)"""
+        """Get shoe sizes for Shoes category"""
+        if self.parent.key == 'shoes':
+            return self.size_config.get('shoe_sizes', [])
+        return []
+
+    def get_upper_sizes(self):
+        """Get upper sizes for Combos category"""
+        if self.parent.key == 'combos':
+            return self.size_config.get('upper_sizes', [])
+        return []
+
+    def get_combo_lower_sizes(self):
+        """Get lower sizes for Combos category"""
+        if self.parent.key == 'combos':
+            return self.size_config.get('lower_sizes', [])
+        return []
+
+    def get_combo_shoe_sizes(self):
+        """Get shoe sizes for Combos category (optional)"""
         if self.parent.key == 'combos':
             return self.size_config.get('shoe_sizes', [])
         return []
 
     def has_shoe_sizes(self):
         """Check if shoe sizes are defined for combos"""
-        return bool(self.get_shoe_sizes())
+        return bool(self.get_combo_shoe_sizes())

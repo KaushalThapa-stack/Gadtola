@@ -39,8 +39,16 @@
                     <p class="text-muted small">
                         {% if cart_item.variations.all %}
                             {% for item in cart_item.variations.all %}
-                                {{ item.variation_category | capfirst }} : {{ item.variation_value | capfirst }} <br>
+                                {% if item.variation_category %}{{ item.variation_category | capfirst }}: {% endif %}
+                                {% with ci=item.images.first %}
+                                  {% if ci %}{{ ci.image_color }}{% endif %}
+                                {% endwith %}<br>
                             {% endfor %}
+                        {% endif %}
+                        {% if cart_item.sizes %}
+                            {% if cart_item.sizes.upper_size %}Upper: {{ cart_item.sizes.upper_size }} <br>{% endif %}
+                            {% if cart_item.sizes.lower_size %}Lower: {{ cart_item.sizes.lower_size }} <br>{% endif %}
+                            {% if cart_item.sizes.shoe_size %}Shoe: {{ cart_item.sizes.shoe_size }} <br>{% endif %}
                         {% endif %}
                     </p>
                 </figcaption>
@@ -54,9 +62,18 @@
                 <input type="number" min="1" max="{{ cart_item.product.stock }}" name="quantity" class="form-control text-center qty-input" data-id="{{ cart_item.id }}" data-product="{{ cart_item.product.id }}" value="{{cart_item.quantity}}" style="width: 60px; height: 40px; font-size: 16px;">
                 <form action="{% url 'carts:add_cart' cart_item.product.id %}" method="POST" class="ml-2 mb-0">
                     {% csrf_token %}
-                    {% for item in cart_item.variations.all %}
-                        <input type="hidden" name="{{ item.variation_category | lower }}" value="{{item.variation_value | capfirst}}">
-                    {% endfor %}
+                    {% if cart_item.variations.all %}
+                        {% for item in cart_item.variations.all %}
+                            {% with col=item.images.first.image_color %}
+                                <input type="hidden" name="color" value="{{ col }}">
+                            {% endwith %}
+                        {% endfor %}
+                    {% endif %}
+                    {% if cart_item.sizes %}
+                        {% if cart_item.sizes.upper_size %}<input type="hidden" name="upper_size" value="{{ cart_item.sizes.upper_size }}">{% endif %}
+                        {% if cart_item.sizes.lower_size %}<input type="hidden" name="lower_size" value="{{ cart_item.sizes.lower_size }}">{% endif %}
+                        {% if cart_item.sizes.shoe_size %}<input type="hidden" name="shoe_size" value="{{ cart_item.sizes.shoe_size }}">{% endif %}
+                    {% endif %}
                     <button class="btn btn-light" type="submit" style="font-size: 16px; padding: 8px 12px;"> 
                         <i class="fa fa-plus"></i> 
                     </button>

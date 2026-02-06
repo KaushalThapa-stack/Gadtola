@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.http import JsonResponse
 
 from category.models import Category, ChildCategory, ParentCategory
-from .models import Product, ReviewRating
+from .models import Product, ReviewRating, Brand
 from carts.models import CartItem
 from carts.views import _cart_id
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -15,15 +15,25 @@ from orders.models import OrderProduct
 
 def store(request, parent_slug=None, child_slug=None, slug=None):
     """
-    Store view supporting parent and child category filtering
-    parent_slug: outfit, shoes, or combos
-    child_slug: specific child category slug
-    slug: legacy category slug (backward compatibility)
+    Store view supporting parent and child category filtering with brand filtering.
+    Filter rules:
+    - User can filter by CHILD CATEGORY OR BRAND, not both
+    - Selecting child category resets brand
+    - Selecting brand resets child category
     """
     products = Product.objects.filter(is_available=True)
     parent_category = None
     child_category = None
+    brand = None
     child_categories_list = []
+    brands_list = []
+    
+    # Get all available brands
+    brands_list = Brand.objects.all().order_by('name')
+    
+    # Get brand from request
+    brand_id = request.GET.get('brand')
+    child_slug_param = request.GET.get('child_category')
     
     # Handle legacy category slug
     if slug:
@@ -41,18 +51,49 @@ def store(request, parent_slug=None, child_slug=None, slug=None):
             # Get all child categories under this parent
             child_categories_list = parent_category.children.all()
             
-            if child_slug:
+            # Handle child category filter
+            if child_slug_param:
                 try:
-                    child_category = ChildCategory.objects.get(slug=child_slug, parent=parent_category)
+                    child_category = ChildCategory.objects.get(slug=child_slug_param, parent=parent_category)
                     # Further filter by child category
                     products = products.filter(child_category=child_category)
+                    # Reset brand when child category is selected
+                    brand_id = None
                 except ChildCategory.DoesNotExist:
                     pass
+            
+            # Handle brand filter (only if child category is not selected)
+            if not child_slug_param and brand_id:
+                try:
+                    brand = Brand.objects.get(id=brand_id)
+                    # Filter by specific brand only
+                    products = products.filter(brand=brand)
+                except Brand.DoesNotExist:
+                    brand = None
+            
+            # If child_slug URL param exists (from navigation), use it
+            if child_slug and not child_slug_param:
+                try:
+                    child_category = ChildCategory.objects.get(slug=child_slug, parent=parent_category)
+                    products = products.filter(child_category=child_category)
+                    brand_id = None
+                except ChildCategory.DoesNotExist:
+                    pass
+        
         except ParentCategory.DoesNotExist:
             pass
+    else:
+        # No parent slug - apply brand filter if available
+        if brand_id and not child_slug_param:
+            try:
+                brand = Brand.objects.get(id=brand_id)
+                # Filter by specific brand only
+                products = products.filter(brand=brand)
+            except Brand.DoesNotExist:
+                brand = None
     
-    # Pagination
-    paginator = Paginator(products.order_by('-created_date'), 9)
+    # Pagination - 8 products per page
+    paginator = Paginator(products.order_by('-created_date'), 8)
     page = request.GET.get('page')
     paged_products = paginator.get_page(page)
     product_count = products.count()
@@ -63,6 +104,8 @@ def store(request, parent_slug=None, child_slug=None, slug=None):
         'parent_category': parent_category,
         'child_category': child_category,
         'child_categories': child_categories_list,
+        'brands': brands_list,
+        'selected_brand': brand,
         'parent_slug': parent_slug,
     }
     

@@ -19,6 +19,7 @@ class CartItem(models.Model):
     user = models.ForeignKey(Account, on_delete=models.CASCADE , null=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     variations = models.ManyToManyField(Variation,blank=True)
+    sizes = models.JSONField(default=dict, blank=True)  # Stores selected sizes: {'upper_size': 'L', 'lower_size': '30', 'shoe_size': '42'}
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, null= True)
     quantity = models.IntegerField()
     is_active = models.BooleanField(default=True)
